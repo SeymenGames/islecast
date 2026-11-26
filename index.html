@@ -1,0 +1,3777 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Unutulmuş Ada - Balıkçılık & Hayatta Kalma</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;600;700&family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0b1120;
+            --panel-bg: #131b2e;
+            --panel-border: #334155;
+            --accent-gold: #f59e0b;
+            --accent-teal: #14b8a6;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-dark);
+            font-family: 'Rubik', sans-serif;
+            color: #f8fafc;
+            touch-action: none;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .font-pixel-title {
+            font-family: 'Pixelify Sans', sans-serif;
+            letter-spacing: 0.02em;
+            line-height: 1.25;
+        }
+
+        .font-ui-body {
+            font-family: 'Rubik', sans-serif;
+            line-height: 1.45;
+        }
+
+        .pixel-art-canvas {
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+
+        /* Keskin ve Yüksek Kontrastlı Piksel Çerçeveler (Bulanıklık Yok) */
+        .pixel-box {
+            background-color: #131b2e;
+            border: 2px solid #475569;
+            box-shadow: 0 4px 0 #090d16, 0 8px 20px rgba(0, 0, 0, 0.55);
+            border-radius: 6px;
+        }
+
+        .pixel-subbox {
+            background-color: #1b263b;
+            border: 2px solid #334155;
+            border-radius: 6px;
+        }
+
+        .pixel-btn {
+            position: relative;
+            background-color: #27354f;
+            border: 2px solid #64748b;
+            box-shadow: 0 3px 0 #0f172a;
+            transition: transform 0.06s, box-shadow 0.06s, background-color 0.12s;
+            cursor: pointer;
+            border-radius: 5px;
+            font-weight: 600;
+        }
+
+        .pixel-btn:hover:not(:disabled) {
+            background-color: #334566;
+            border-color: #94a3b8;
+        }
+
+        .pixel-btn:active:not(:disabled) {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 #0f172a;
+        }
+
+        .pixel-btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .pixel-btn-gold {
+            background-color: #b45309;
+            border-color: #fbbf24;
+            box-shadow: 0 3px 0 #451a03;
+            color: #fef3c7;
+        }
+        .pixel-btn-gold:hover:not(:disabled) {
+            background-color: #d97706;
+        }
+
+        .pixel-btn-emerald {
+            background-color: #047857;
+            border-color: #34d399;
+            box-shadow: 0 3px 0 #022c22;
+            color: #ecfdf5;
+        }
+        .pixel-btn-emerald:hover:not(:disabled) {
+            background-color: #059669;
+        }
+
+        .pixel-btn-blue {
+            background-color: #1d4ed8;
+            border-color: #60a5fa;
+            box-shadow: 0 3px 0 #172554;
+            color: #eff6ff;
+        }
+        .pixel-btn-blue:hover:not(:disabled) {
+            background-color: #2563eb;
+        }
+
+        .pixel-btn-red {
+            background-color: #b91c1c;
+            border-color: #f87171;
+            box-shadow: 0 3px 0 #450a0a;
+            color: #fef2f2;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+
+        #gameCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .swatch-btn {
+            width: 28px;
+            height: 28px;
+            border: 2px solid #0f172a;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .swatch-btn.active {
+            border: 2px solid #fbbf24;
+            transform: scale(1.14);
+            box-shadow: 0 0 0 2px #131b2e, 0 0 0 4px #fbbf24;
+        }
+
+        @keyframes toastSlideIn {
+            0% { transform: translateY(-14px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        .toast-enter {
+            animation: toastSlideIn 0.2s ease-out forwards;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ANA OYUN CANVAS'I -->
+    <canvas id="gameCanvas" class="pixel-art-canvas"></canvas>
+
+    <!-- GİRİŞ VE KARAKTER ÖZELLEŞTİRME STÜDYOSU -->
+    <div id="startScreen" class="fixed inset-0 z-40 flex items-center justify-center p-2 sm:p-4 bg-slate-950/85 overflow-y-auto">
+        <div class="pixel-box w-full max-w-5xl p-4 sm:p-6 my-auto max-h-[96vh] overflow-y-auto">
+            
+            <!-- Üst Başlık ve Hızlı Müzik Kontrolü -->
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 border-b-2 border-slate-700 pb-4 mb-5">
+                <div class="text-center sm:text-left">
+                    <div class="flex items-center justify-center sm:justify-start gap-2.5">
+                        <span class="text-2xl sm:text-3xl">🏝️</span>
+                        <h1 class="font-pixel-title text-2xl sm:text-3xl font-bold text-amber-400">
+                            UNUTULMUŞ ADA
+                        </h1>
+                    </div>
+                    <p class="text-slate-300 text-sm sm:text-base mt-1 font-medium">
+                        2D Pixel-Art Balık Tutma ve Ada Hayatta Kalma Simülasyonu
+                    </p>
+                </div>
+                <div class="flex flex-wrap items-center justify-center gap-2">
+                    <button id="btnStartMusic" onclick="AudioEngine.toggleMusic()" class="pixel-btn px-3.5 py-2 text-sm flex items-center gap-2">
+                        <span id="startMusicIcon">🔇</span>
+                        <span id="startMusicText">Müzik: Kapalı</span>
+                    </button>
+                    <button id="btnLoadSave" onclick="Game.loadExistingSave()" class="pixel-btn pixel-btn-blue px-3.5 py-2 text-sm hidden">
+                        💾 Kayıtlı Oyuna Devam Et
+                    </button>
+                </div>
+            </div>
+
+            <!-- Ana Grid: Sol Karakter Özelleştirme (7 Kolon), Sağ Canlı Önizleme & Mod Seçimi (5 Kolon) -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                
+                <!-- SOL KOLON: DETAYLI KARAKTER ÖZELLEŞTİRME -->
+                <div class="lg:col-span-7 pixel-subbox p-4 space-y-3.5">
+                    <div class="flex items-center justify-between border-b border-slate-700 pb-2.5">
+                        <h2 class="font-pixel-title text-lg font-bold text-teal-400">🧑 Karakter Tasarım Stüdyosu</h2>
+                        <button onclick="CharCreator.randomize()" class="pixel-btn px-3 py-1 text-sm text-amber-300">
+                            🎲 Rastgele Tasarla
+                        </button>
+                    </div>
+
+                    <!-- İsim Girişi -->
+                    <div>
+                        <label class="block text-slate-200 text-sm font-medium mb-1">Balıkçı İsmi (Oyun içinde karakterin üstünde yarı şeffaf görünür):</label>
+                        <input type="text" id="inputCharName" maxlength="16" value="Kaptan Deniz" placeholder="İsminizi yazın..."
+                            oninput="CharCreator.updateName(this.value)"
+                            class="w-full bg-slate-950 border-2 border-slate-600 focus:border-amber-400 rounded-md px-3 py-2 text-base font-semibold text-amber-200 outline-none">
+                    </div>
+
+                    <!-- Ten Rengi & Saç Rengi -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                            <span class="block text-slate-300 text-sm font-medium mb-1.5">Ten Rengi:</span>
+                            <div id="swatchSkin" class="flex flex-wrap gap-1.5"></div>
+                        </div>
+                        <div>
+                            <span class="block text-slate-300 text-sm font-medium mb-1.5">Saç & Sakal Rengi:</span>
+                            <div id="swatchHair" class="flex flex-wrap gap-1.5"></div>
+                        </div>
+                    </div>
+
+                    <!-- Saç Modeli & Şapka -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                            <span class="block text-slate-300 text-sm font-medium mb-1">Saç Modeli (8 Stil):</span>
+                            <div class="flex items-center gap-1.5">
+                                <button onclick="CharCreator.cycleOption('hairStyle', -1)" class="pixel-btn px-3 py-1.5 text-sm">◀</button>
+                                <span id="labelHairStyle" class="flex-1 text-center bg-slate-950 border border-slate-700 py-1.5 rounded text-sm font-medium text-white">Kısa Dağınık</span>
+                                <button onclick="CharCreator.cycleOption('hairStyle', 1)" class="pixel-btn px-3 py-1.5 text-sm">▶</button>
+                            </div>
+                        </div>
+                        <div>
+                            <span class="block text-slate-300 text-sm font-medium mb-1">Şapka / Başlık (6 Stil):</span>
+                            <div class="flex items-center gap-1.5">
+                                <button onclick="CharCreator.cycleOption('hat', -1)" class="pixel-btn px-3 py-1.5 text-sm">◀</button>
+                                <span id="labelHat" class="flex-1 text-center bg-slate-950 border border-slate-700 py-1.5 rounded text-sm font-medium text-amber-300">Hasır Şapka</span>
+                                <button onclick="CharCreator.cycleOption('hat', 1)" class="pixel-btn px-3 py-1.5 text-sm">▶</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Yüz Aksesuarı & Kıyafet Tarzı -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                            <span class="block text-slate-300 text-sm font-medium mb-1">Sakal & Yüz Aksesuarı:</span>
+                            <div class="flex items-center gap-1.5">
+                                <button onclick="CharCreator.cycleOption('accessory', -1)" class="pixel-btn px-3 py-1.5 text-sm">◀</button>
+                                <span id="labelAccessory" class="flex-1 text-center bg-slate-950 border border-slate-700 py-1.5 rounded text-sm font-medium text-teal-300">Yok</span>
+                                <button onclick="CharCreator.cycleOption('accessory', 1)" class="pixel-btn px-3 py-1.5 text-sm">▶</button>
+                            </div>
+                        </div>
+                        <div>
+                            <span class="block text-slate-300 text-sm font-medium mb-1">Kıyafet Tarzı:</span>
+                            <div class="flex items-center gap-1.5">
+                                <button onclick="CharCreator.cycleOption('outfitStyle', -1)" class="pixel-btn px-3 py-1.5 text-sm">◀</button>
+                                <span id="labelOutfitStyle" class="flex-1 text-center bg-slate-950 border border-slate-700 py-1.5 rounded text-sm font-medium text-sky-300">Balıkçı Yeleği</span>
+                                <button onclick="CharCreator.cycleOption('outfitStyle', 1)" class="pixel-btn px-3 py-1.5 text-sm">▶</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Üst Kıyafet & Pantolon Rengi -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                            <span class="block text-slate-300 text-sm font-medium mb-1.5">Üst Kıyafet Rengi:</span>
+                            <div id="swatchShirt" class="flex flex-wrap gap-1.5"></div>
+                        </div>
+                        <div>
+                            <span class="block text-slate-300 text-sm font-medium mb-1.5">Pantolon Rengi:</span>
+                            <div id="swatchPants" class="flex flex-wrap gap-1.5"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SAĞ KOLON: BÜYÜK CANLI ÖNİZLEME VE MOD SEÇİMİ -->
+                <div class="lg:col-span-5 flex flex-col justify-between gap-4">
+                    <!-- 6x Piksel Karakter Önizleme Kutusu -->
+                    <div class="pixel-subbox p-3.5 flex flex-col items-center">
+                        <div class="w-full flex justify-between items-center mb-2">
+                            <span class="text-slate-300 text-xs font-semibold uppercase tracking-wider">Canlı 24x32 Piksel Önizleme</span>
+                            <div class="flex gap-1.5">
+                                <button onclick="CharCreator.setPreviewAnim('idle')" class="pixel-btn px-2.5 py-1 text-xs">Dur</button>
+                                <button onclick="CharCreator.setPreviewAnim('walk')" class="pixel-btn px-2.5 py-1 text-xs">Yürü</button>
+                                <button onclick="CharCreator.setPreviewAnim('fish')" class="pixel-btn px-2.5 py-1 text-xs">Olta</button>
+                            </div>
+                        </div>
+                        <canvas id="previewCanvas" width="240" height="205" class="pixel-art-canvas bg-gradient-to-b from-sky-900/70 via-sky-950/60 to-emerald-950/80 border-2 border-slate-700 rounded-md w-full max-w-[240px]"></canvas>
+                    </div>
+
+                    <!-- 3 Oyun Modu Seçimi -->
+                    <div class="pixel-subbox p-3.5 space-y-2.5">
+                        <h2 class="font-pixel-title text-lg font-bold text-amber-400">🎮 Oyun Modu Seç ve Başla</h2>
+                        
+                        <button onclick="Game.startNewGame('zen')" class="w-full pixel-btn pixel-btn-emerald p-3 text-left flex items-start gap-3">
+                            <span class="text-2xl mt-0.5">🌿</span>
+                            <div>
+                                <div class="font-pixel-title text-base font-bold text-emerald-100">1. Serbest Mod (Huzurlu)</div>
+                                <div class="text-xs sm:text-sm text-emerald-100/90 font-normal mt-0.5">Açlık veya soğuk yok. Müziğini aç, adayı gez ve keyifle balık tut.</div>
+                            </div>
+                        </button>
+
+                        <button onclick="Game.startNewGame('arcade')" class="w-full pixel-btn pixel-btn-gold p-3 text-left flex items-start gap-3">
+                            <span class="text-2xl mt-0.5">⚡</span>
+                            <div>
+                                <div class="font-pixel-title text-base font-bold text-amber-100">2. Hızlı Kasılma & Gelişme</div>
+                                <div class="text-xs sm:text-sm text-amber-100/90 font-normal mt-0.5">Kombo çarpanları, yetenek ağacı, tekne ile açık deniz ve efsanevi oltalar!</div>
+                            </div>
+                        </button>
+
+                        <button onclick="Game.startNewGame('story')" class="w-full pixel-btn pixel-btn-blue p-3 text-left flex items-start gap-3">
+                            <span class="text-2xl mt-0.5">🔥</span>
+                            <div>
+                                <div class="font-pixel-title text-base font-bold text-sky-100">3. Hikaye & Hayatta Kalma</div>
+                                <div class="text-xs sm:text-sm text-sky-100/90 font-normal mt-0.5">Açlık, Susuzluk ve Soğuk barları! Ateş yak, balık pişir ve kurtarma teknesini onar.</div>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- OYUN İÇİ ÜST HUD ARAYÜZÜ (EKRANDA MOBİL BUTON YOK, TEMİZ ARAYÜZ) -->
+    <div id="gameHUD" class="fixed inset-0 pointer-events-none z-20 hidden flex flex-col justify-between p-2.5 sm:p-4">
+        
+        <!-- ÜST BAR -->
+        <div class="flex items-start justify-between gap-2">
+            
+            <!-- SOL ÜST: Oyuncu Kartı & Hayatta Kalma Barları -->
+            <div class="pointer-events-auto flex flex-col gap-2 max-w-[250px] sm:max-w-[300px]">
+                <div class="pixel-box px-3 py-2">
+                    <div class="flex items-center justify-between gap-2">
+                        <span id="hudPlayerName" class="font-pixel-title text-base sm:text-lg text-amber-300 font-bold truncate">Kaptan Deniz</span>
+                        <span id="hudModeBadge" class="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-950 border border-emerald-500 text-emerald-200">SERBEST</span>
+                    </div>
+                    <div class="flex items-center justify-between text-sm sm:text-base text-slate-200 mt-1 font-medium">
+                        <span>💰 <strong id="hudGold" class="text-amber-400">0</strong></span>
+                        <span>⭐ Sv.<strong id="hudLevel" class="text-teal-300">1</strong></span>
+                        <span id="hudComboBadge" class="hidden text-orange-400 font-bold">🔥x1</span>
+                    </div>
+                    <!-- XP Barı -->
+                    <div class="w-full h-2 bg-slate-950 rounded overflow-hidden mt-1.5 border border-slate-700">
+                        <div id="hudXpBar" class="h-full bg-teal-400 transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- SADECE HİKAYE MODUNDA GÖRÜNEN HAYATTA KALMA BARLARI -->
+                <div id="survivalBarsPanel" class="pixel-box px-3 py-2 space-y-1.5 hidden">
+                    <div class="flex items-center gap-2 text-xs sm:text-sm">
+                        <span class="w-5 text-center" title="Açlık">🍖</span>
+                        <div class="flex-1 h-3.5 bg-slate-950 border border-slate-700 rounded overflow-hidden relative">
+                            <div id="barHunger" class="h-full bg-orange-500 transition-all duration-300" style="width: 100%"></div>
+                            <span id="valHunger" class="absolute inset-0 text-[11px] leading-3.5 text-center text-white font-semibold">100%</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs sm:text-sm">
+                        <span class="w-5 text-center" title="Susuzluk">💧</span>
+                        <div class="flex-1 h-3.5 bg-slate-950 border border-slate-700 rounded overflow-hidden relative">
+                            <div id="barThirst" class="h-full bg-sky-500 transition-all duration-300" style="width: 100%"></div>
+                            <span id="valThirst" class="absolute inset-0 text-[11px] leading-3.5 text-center text-white font-semibold">100%</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs sm:text-sm">
+                        <span class="w-5 text-center" title="Vücut Isısı">🔥</span>
+                        <div class="flex-1 h-3.5 bg-slate-950 border border-slate-700 rounded overflow-hidden relative">
+                            <div id="barWarmth" class="h-full bg-rose-500 transition-all duration-300" style="width: 100%"></div>
+                            <span id="valWarmth" class="absolute inset-0 text-[11px] leading-3.5 text-center text-white font-semibold">100%</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between text-xs text-slate-300 pt-1 border-t border-slate-800 font-medium">
+                        <span>🪵 Odun: <strong id="hudWoodCount" class="text-amber-300">2</strong></span>
+                        <span>🍶 Matara: <strong id="hudWaterCount" class="text-sky-300">3/3</strong></span>
+                    </div>
+                </div>
+
+                <!-- HİKAYE GÖREV TAKİP KUTUSU -->
+                <div id="storyQuestPanel" class="pixel-box px-3 py-2 hidden cursor-pointer hover:border-amber-400" onclick="UI.openModal('story')">
+                    <div class="text-xs text-amber-400 font-bold tracking-wide">📜 HİKAYE GÖREVİ</div>
+                    <div id="hudQuestTitle" class="text-sm text-white leading-snug font-semibold mt-0.5">Bölüm 1: İlk Ateş</div>
+                    <div id="hudQuestDesc" class="text-xs text-slate-300 leading-snug mt-0.5">Kuzey kamp alanında ateş yak.</div>
+                </div>
+            </div>
+
+            <!-- ORTA ÜST: Biyom, Saat, Hava Durumu & Kayan Bildirim Alanı -->
+            <div class="flex flex-col items-center gap-2 flex-1 max-w-lg mx-auto">
+                <div class="pointer-events-auto hidden md:flex pixel-box px-4 py-1.5 items-center gap-3 text-sm font-medium">
+                    <span id="hudBiome" class="text-emerald-300 font-semibold">🏖️ Güney Kumsalı</span>
+                    <span class="text-slate-600">|</span>
+                    <span id="hudTime" class="text-amber-200">08:30 (Gündüz)</span>
+                    <span class="text-slate-600">|</span>
+                    <span id="hudWeather" class="text-sky-200">🌤️ Güneşli</span>
+                </div>
+
+                <!-- Engelleyici Olmayan Kompakt Üst-Orta Balık & Bilgi Bildirimleri -->
+                <div id="toastContainer" class="flex flex-col items-center gap-1.5 w-full pointer-events-none"></div>
+            </div>
+
+            <!-- SAĞ ÜST: Mini Harita ve Temiz Menü Butonları -->
+            <div class="pointer-events-auto flex flex-col items-end gap-2">
+                <div class="pixel-box p-1.5 relative">
+                    <canvas id="minimapCanvas" width="112" height="84" class="pixel-art-canvas rounded block"></canvas>
+                    <div id="mobileBiomeTag" class="md:hidden text-xs text-center text-emerald-300 bg-slate-950/95 mt-1 rounded px-1.5 py-0.5 font-medium truncate max-w-[112px]">
+                        Güney Kumsalı
+                    </div>
+                </div>
+
+                <!-- Üst Menü Butonları -->
+                <div class="flex flex-wrap justify-end gap-1.5 max-w-[230px] sm:max-w-none">
+                    <button onclick="UI.openModal('bag')" class="pixel-btn px-2.5 py-1.5 text-sm flex items-center gap-1.5" title="Çanta (I)">
+                        🎒 <span class="hidden sm:inline">Çanta</span>
+                    </button>
+                    <button onclick="UI.openModal('shop')" class="pixel-btn pixel-btn-gold px-2.5 py-1.5 text-sm flex items-center gap-1.5" title="Dükkan & Geliştirme">
+                        🏪 <span class="hidden sm:inline">Dükkan</span>
+                    </button>
+                    <button onclick="UI.openModal('dex')" class="pixel-btn px-2.5 py-1.5 text-sm flex items-center gap-1.5" title="Balık Ansiklopedisi">
+                        📖 <span class="hidden sm:inline">Balıklar</span>
+                    </button>
+                    <button id="btnSkillsHUD" onclick="UI.openModal('skills')" class="pixel-btn pixel-btn-emerald px-2.5 py-1.5 text-sm hidden items-center gap-1.5" title="Yetenekler">
+                        ⚡ <span class="hidden sm:inline">Yetenek</span>
+                    </button>
+                    <button onclick="Game.buildCampfireHere()" class="pixel-btn px-2.5 py-1.5 text-sm flex items-center gap-1.5 text-orange-300" title="Bulunduğun Yere Ateş Yak (F)">
+                        🔥 <span class="hidden sm:inline">Ateş Yak</span>
+                    </button>
+                    <button onclick="UI.openModal('audio')" class="pixel-btn px-2.5 py-1.5 text-sm flex items-center gap-1" title="Müzik & Ayarlar">
+                        🎵
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ALT ALAN: Sadece İnce İpucu Şeridi (Mobil Sanal Butonlar Tamamen Kaldırıldı) -->
+        <div class="flex items-end justify-center w-full pb-1">
+            <div id="bottomHintBar" class="pointer-events-none bg-slate-950/80 border border-slate-700/80 px-3.5 py-1.5 rounded-md text-xs sm:text-sm text-slate-200 font-medium text-center shadow-lg">
+                <span class="hidden md:inline">[WASD / Yön] Yürü • [SPACE / Suya Tıkla] Olta At & Çek • [F] Ateş Yak • [E] Etkileşim • [I] Çanta</span>
+                <span class="md:hidden">Karaya dokun: Yürü • Suya dokun: Olta At • Çalı topla & Ateş Yak • Gece çadırda uyu!</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- UYKU GEÇİŞ EFEKTİ OVERLAY -->
+    <div id="sleepOverlay" class="fixed inset-0 z-50 hidden bg-slate-950 flex flex-col items-center justify-center p-4 transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div class="text-4xl sm:text-5xl mb-3">⛺💤</div>
+        <div class="font-pixel-title text-xl sm:text-2xl text-amber-300 font-bold text-center">Mışıl mışıl uyuyorsun...</div>
+        <div class="text-slate-300 text-sm mt-1">Ada sabahına uyanılıyor...</div>
+    </div>
+
+    <!-- MODAL PENCERELERİ (Sadece Çanta, Dükkan, Ansiklopedi, Yetenek, Kamp Ateşi, Çadır, Hikaye, Müzik için) -->
+    <div id="modalBackdrop" class="fixed inset-0 z-50 hidden bg-slate-950/80 flex items-center justify-center p-2.5 sm:p-4" onclick="if(event.target===this) UI.closeModal()">
+        <div class="pixel-box w-full max-w-3xl max-h-[88vh] flex flex-col overflow-hidden">
+            <div class="flex items-center justify-between px-4 py-3 border-b-2 border-slate-700 bg-slate-900">
+                <h3 id="modalTitle" class="font-pixel-title text-lg sm:text-xl font-bold text-amber-400">MENÜ</h3>
+                <button onclick="UI.closeModal()" class="pixel-btn pixel-btn-red px-3 py-1 text-sm">✖ KAPAT</button>
+            </div>
+            <div id="modalContent" class="p-4 overflow-y-auto space-y-4 text-sm sm:text-base flex-1"></div>
+        </div>
+    </div>
+
+<script>
+/**
+ * ============================================================================
+ * UNUTULMUŞ ADA - 2D PİKSEL BALIK TUTMA VE ADA HAYATTA KALMA OYUNU
+ * ============================================================================
+ */
+
+/* ----------------------------------------------------------------------------
+ * 1. WEB AUDIO API RAHATLATICI MÜZİK VE PİKSEL SES EFEKTİ MOTORU
+ * ---------------------------------------------------------------------------- */
+const AudioEngine = {
+    ctx: null,
+    isMusicOn: false,
+    isSfxOn: true,
+    masterVolume: 0.45,
+    musicVolume: 0.35,
+    currentTrack: 0,
+    seqTimer: null,
+    stepIndex: 0,
+    ambientNode: null,
+
+    tracks: [
+        {
+            name: "Sakin Dalgalar (Lo-Fi Ada)",
+            tempo: 420,
+            notes: [261.63, 329.63, 392.00, 493.88, 392.00, 329.63, 293.66, 349.23, 440.00, 523.25, 440.00, 349.23]
+        },
+        {
+            name: "Gün Batımı Gitarı (Akustik)",
+            tempo: 360,
+            notes: [220.00, 261.63, 329.63, 392.00, 329.63, 261.63, 196.00, 246.94, 293.66, 392.00, 293.66, 246.94]
+        },
+        {
+            name: "Gece Cırcır Böcekleri (Pentatonik)",
+            tempo: 500,
+            notes: [293.66, 329.63, 392.00, 440.00, 523.25, 440.00, 392.00, 329.63, 261.63, 293.66, 392.00, 329.63]
+        }
+    ],
+
+    init() {
+        if (!this.ctx) {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            this.ctx = new AudioCtx();
+        }
+        if (this.ctx.state === 'suspended') {
+            this.ctx.resume();
+        }
+    },
+
+    toggleMusic() {
+        this.init();
+        this.isMusicOn = !this.isMusicOn;
+        if (this.isMusicOn) {
+            this.startMusicLoop();
+            this.startOceanAmbient();
+        } else {
+            this.stopMusicLoop();
+            this.stopOceanAmbient();
+        }
+        this.updateMusicButtons();
+    },
+
+    selectTrack(idx) {
+        this.currentTrack = idx;
+        this.stepIndex = 0;
+        if (this.isMusicOn) {
+            this.stopMusicLoop();
+            this.startMusicLoop();
+        }
+    },
+
+    updateMusicButtons() {
+        const icon = document.getElementById('startMusicIcon');
+        const text = document.getElementById('startMusicText');
+        if (icon && text) {
+            icon.textContent = this.isMusicOn ? '🔊' : '🔇';
+            text.textContent = this.isMusicOn ? 'Müzik: Açık' : 'Müzik: Kapalı';
+        }
+    },
+
+    startMusicLoop() {
+        this.stopMusicLoop();
+        const track = this.tracks[this.currentTrack];
+        const playStep = () => {
+            if (!this.isMusicOn || !this.ctx) return;
+            const freq = track.notes[this.stepIndex % track.notes.length];
+            this.playSoftNote(freq, track.tempo / 1000 * 1.4);
+            if (this.stepIndex % 4 === 0) {
+                this.playSoftNote(freq * 0.5, track.tempo / 1000 * 2.5, 'sine', 0.14);
+            }
+            this.stepIndex++;
+            this.seqTimer = setTimeout(playStep, track.tempo);
+        };
+        playStep();
+    },
+
+    stopMusicLoop() {
+        if (this.seqTimer) {
+            clearTimeout(this.seqTimer);
+            this.seqTimer = null;
+        }
+    },
+
+    playSoftNote(freq, duration, type = 'triangle', volMult = 0.09) {
+        if (!this.ctx || !this.isMusicOn) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, now);
+
+        const vol = this.masterVolume * this.musicVolume * volMult;
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.linearRampToValueAtTime(vol, now + 0.06);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + duration + 0.05);
+    },
+
+    startOceanAmbient() {
+        if (!this.ctx || this.ambientNode) return;
+        const bufferSize = this.ctx.sampleRate * 3;
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+            data[i] = Math.random() * 2 - 1;
+        }
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+        noise.loop = true;
+
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 320;
+
+        const gain = this.ctx.createGain();
+        gain.gain.value = this.masterVolume * this.musicVolume * 0.06;
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.ctx.destination);
+        noise.start();
+        this.ambientNode = { noise, gain };
+    },
+
+    stopOceanAmbient() {
+        if (this.ambientNode) {
+            try { this.ambientNode.noise.stop(); } catch (e) {}
+            this.ambientNode = null;
+        }
+    },
+
+    playSfx(type) {
+        if (!this.isSfxOn) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        const vol = this.masterVolume * 0.24;
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        if (type === 'cast') {
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(240, now);
+            osc.frequency.exponentialRampToValueAtTime(640, now + 0.16);
+            gain.gain.setValueAtTime(vol, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.20);
+            osc.start(now);
+            osc.stop(now + 0.21);
+        } else if (type === 'splash') {
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(340, now);
+            osc.frequency.exponentialRampToValueAtTime(110, now + 0.22);
+            gain.gain.setValueAtTime(vol, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.24);
+            osc.start(now);
+            osc.stop(now + 0.25);
+        } else if (type === 'bite') {
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(587.33, now);
+            osc.frequency.setValueAtTime(880, now + 0.08);
+            gain.gain.setValueAtTime(vol * 0.75, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.20);
+            osc.start(now);
+            osc.stop(now + 0.21);
+        } else if (type === 'reelTick') {
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(520, now);
+            gain.gain.setValueAtTime(vol * 0.35, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+            osc.start(now);
+            osc.stop(now + 0.05);
+        } else if (type === 'catch') {
+            const freqs = [523.25, 659.25, 783.99, 1046.50];
+            freqs.forEach((f, idx) => {
+                const o = this.ctx.createOscillator();
+                const g = this.ctx.createGain();
+                o.type = 'triangle';
+                o.frequency.setValueAtTime(f, now + idx * 0.07);
+                g.gain.setValueAtTime(vol, now + idx * 0.07);
+                g.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.07 + 0.22);
+                o.connect(g);
+                g.connect(this.ctx.destination);
+                o.start(now + idx * 0.07);
+                o.stop(now + idx * 0.07 + 0.23);
+            });
+        } else if (type === 'coin' || type === 'eat' || type === 'fire') {
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(type === 'fire' ? 180 : 660, now);
+            osc.frequency.exponentialRampToValueAtTime(type === 'fire' ? 420 : 990, now + 0.14);
+            gain.gain.setValueAtTime(vol * 0.8, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+            osc.start(now);
+            osc.stop(now + 0.17);
+        }
+    }
+};
+
+/* ----------------------------------------------------------------------------
+ * 2. VERİ TABANI: 32 BENZERSİZ PİKSEL BALIK, OLTALAR VE HİKAYE BÖLÜMLERİ
+ * ---------------------------------------------------------------------------- */
+const RARITY_INFO = {
+    common:    { label: 'Sıradan',   color: '#cbd5e1', xpMult: 1.0, reelTime: 0.65 },
+    rare:      { label: 'Nadir',     color: '#38bdf8', xpMult: 1.8, reelTime: 0.85 },
+    epic:      { label: 'Destansı',  color: '#c084fc', xpMult: 3.0, reelTime: 1.05 },
+    legendary: { label: 'Efsanevi',  color: '#fbbf24', xpMult: 5.5, reelTime: 1.30 }
+};
+
+const FISH_DATABASE = [
+    // GÜNEY KUMSALI (beach)
+    { id: 'hamsi', name: 'Karadeniz Hamsisi', rarity: 'common', biome: 'beach', time: 'any', price: 14, minW: 0.06, maxW: 0.18, color1: '#94a3b8', color2: '#38bdf8', shape: 'slim', desc: 'Sürüler halinde gezen minik ve lezzetli kıyı balığı.' },
+    { id: 'istavrit', name: 'Gümüş İstavrit', rarity: 'common', biome: 'beach', time: 'any', price: 20, minW: 0.15, maxW: 0.45, color1: '#cbd5e1', color2: '#64748b', shape: 'slim', desc: 'Parlak pullarıyla güneş ışığını yansıtan çevik balık.' },
+    { id: 'sardalya', name: 'Altın Sardalya', rarity: 'common', biome: 'beach', time: 'day', price: 18, minW: 0.1, maxW: 0.3, color1: '#fde047', color2: '#94a3b8', shape: 'slim', desc: 'Sıcak sığ sularda sabahları bolca görülür.' },
+    { id: 'cipura', name: 'Kraliyet Çipurası', rarity: 'rare', biome: 'beach', time: 'day', price: 48, minW: 0.6, maxW: 2.4, color1: '#e2e8f0', color2: '#f59e0b', shape: 'round', desc: 'Alnındaki altın şeritle tanınan değerli kıyı balığı.' },
+    { id: 'levrek', name: 'Gümüş Levrek', rarity: 'rare', biome: 'beach', time: 'any', price: 54, minW: 0.8, maxW: 4.5, color1: '#94a3b8', color2: '#1e293b', shape: 'normal', desc: 'Dalgalı kıyıları seven kurnaz avcı.' },
+    { id: 'palamut', name: 'Çizgili Palamut', rarity: 'epic', biome: 'beach', time: 'day', price: 95, minW: 1.5, maxW: 6.0, color1: '#3b82f6', color2: '#1e3a8a', shape: 'torpedo', desc: 'Çok hızlı yüzen, makarayı zorlayan güçlü göçmen balık.' },
+    { id: 'denizati', name: 'Mercan Denizatlısı', rarity: 'legendary', biome: 'beach', time: 'day', price: 220, minW: 0.1, maxW: 0.4, color1: '#fb7185', color2: '#fda4af', shape: 'seahorse', desc: 'Sadece şanslı balıkçılara görünen nadir mercan sakini.' },
+
+    // TATLI SU GÖLÜ (lake)
+    { id: 'sazan', name: 'Aynalı Sazan', rarity: 'common', biome: 'lake', time: 'any', price: 24, minW: 1.0, maxW: 8.5, color1: '#d97706', color2: '#fef08a', shape: 'round', desc: 'Tatlı su gölünün sabırlı ve iri sakini.' },
+    { id: 'kizilkanat', name: 'Kızılkanat', rarity: 'common', biome: 'lake', time: 'day', price: 22, minW: 0.2, maxW: 0.9, color1: '#cbd5e1', color2: '#ef4444', shape: 'normal', desc: 'Kırmızı yüzgeçleriyle sazlıklar arasında parlar.' },
+    { id: 'alabalik', name: 'Gökkuşağı Alabalığı', rarity: 'rare', biome: 'lake', time: 'day', price: 62, minW: 0.7, maxW: 3.8, color1: '#f472b6', color2: '#34d399', shape: 'normal', desc: 'Serin ve oksijenli göl sularında yaşar.' },
+    { id: 'yayin', name: 'Bıyıklı Yayın Balığı', rarity: 'rare', biome: 'lake', time: 'night', price: 75, minW: 3.0, maxW: 18.0, color1: '#475569', color2: '#1e293b', shape: 'long', desc: 'Geceleri göl tabanından çıkıp avlanan dev balık.' },
+    { id: 'turna', name: 'Zümrüt Turna Balığı', rarity: 'epic', biome: 'lake', time: 'day', price: 110, minW: 2.0, maxW: 11.0, color1: '#10b981', color2: '#064e3b', shape: 'long', desc: 'Keskin dişleri ve ani hamleleriyle bilinir.' },
+    { id: 'altinkoi', name: 'Efsanevi Altın Koi', rarity: 'legendary', biome: 'lake', time: 'any', price: 480, minW: 1.5, maxW: 5.0, color1: '#fbbf24', color2: '#ef4444', shape: 'round', desc: 'Orman gölünün koruyucu ruhu olduğuna inanılan kutsal balık.' },
+
+    // DOĞU MERCAN RESİFİ & DERİN OKYANUS (cliffs)
+    { id: 'uskumru', name: 'Mavi Uskumru', rarity: 'common', biome: 'cliffs', time: 'any', price: 26, minW: 0.3, maxW: 1.1, color1: '#0284c7', color2: '#bae6fd', shape: 'torpedo', desc: 'Derin kayalık akıntılarında yaşayan enerjik balık.' },
+    { id: 'mercan', name: 'Kırmızı Mercan Balığı', rarity: 'rare', biome: 'cliffs', time: 'day', price: 68, minW: 0.8, maxW: 3.2, color1: '#f43f5e', color2: '#fecdd3', shape: 'round', desc: 'Kayalık kovuklarında saklanan parlak kırmızı balık.' },
+    { id: 'orkinos', name: 'Mavi Yüzgeçli Orkinos', rarity: 'rare', biome: 'cliffs', time: 'day', price: 145, minW: 15.0, maxW: 65.0, color1: '#1d4ed8', color2: '#93c5fd', shape: 'torpedo', desc: 'Okyanusun en güçlü yüzücülerinden biri.' },
+    { id: 'kilicbaligi', name: 'Gümüş Kılıçbalığı', rarity: 'epic', biome: 'cliffs', time: 'day', price: 250, minW: 20.0, maxW: 80.0, color1: '#38bdf8', color2: '#f8fafc', shape: 'sword', desc: 'Uzun burnuyla dalgaları yaran asil okyanus savaşçısı.' },
+    { id: 'ahtapot', name: 'Bilge Kızıl Ahtapot', rarity: 'epic', biome: 'cliffs', time: 'night', price: 220, minW: 3.0, maxW: 14.0, color1: '#e11d48', color2: '#fb7185', shape: 'octopus', desc: 'Sekiz koluyla oltaya sıkıca tutunan zeki kafadanbacaklı.' },
+    { id: 'kopekbaligi', name: 'Çekiç Başlı Köpekbalığı', rarity: 'epic', biome: 'cliffs', time: 'any', price: 310, minW: 35.0, maxW: 120.0, color1: '#64748b', color2: '#cbd5e1', shape: 'shark', desc: 'Doğu uçurumunun derinliklerinde devriye gezen yırtıcı.' },
+    { id: 'leviathan', name: 'Kadim Deniz Leviathanı', rarity: 'legendary', biome: 'cliffs', time: 'night', price: 680, minW: 90.0, maxW: 250.0, color1: '#6366f1', color2: '#22d3ee', shape: 'leviathan', desc: 'Sadece gece yarısı derin uçurumdan yükselen efsanevi deniz canavarı.' },
+
+    // BATI GİZEMLİ LAGÜN & MANGROV KOYU (swamp)
+    { id: 'kurbagabaligi', name: 'Benekli Çamur Balığı', rarity: 'common', biome: 'swamp', time: 'any', price: 25, minW: 0.3, maxW: 1.2, color1: '#65a30d', color2: '#365314', shape: 'round', desc: 'Mangrov kökleri arasında kamufle olan ilginç balık.' },
+    { id: 'yilanbaligi', name: 'Elektrikli Yılanbalığı', rarity: 'rare', biome: 'swamp', time: 'night', price: 80, minW: 1.5, maxW: 6.5, color1: '#eab308', color2: '#1e293b', shape: 'long', desc: 'Karanlık sularda hafif kıvılcımlar saçan gizemli tür.' },
+    { id: 'pirana', name: 'Yakut Pirana', rarity: 'rare', biome: 'swamp', time: 'day', price: 70, minW: 0.4, maxW: 1.5, color1: '#dc2626', color2: '#f97316', shape: 'round', desc: 'Küçük ama çok agresif lagün avcısı.' },
+    { id: 'fenerbaligi', name: 'Derinlik Fener Balığı', rarity: 'epic', biome: 'swamp', time: 'night', price: 145, minW: 1.2, maxW: 4.8, color1: '#312e81', color2: '#fde047', shape: 'angler', desc: 'Alnındaki parlayan fenerle karanlıkta avlarını çeker.' },
+    { id: 'hayaletvatoz', name: 'Ay Işığı Hayalet Vatozu', rarity: 'epic', biome: 'swamp', time: 'night', price: 270, minW: 8.0, maxW: 28.0, color1: '#a5f3fc', color2: '#818cf8', shape: 'ray', desc: 'Gece sisinde suyun üzerinde süzülüyormuş gibi görünür.' },
+    { id: 'bataklikkrali', name: 'Kadim Aksolotl Ejderi', rarity: 'legendary', biome: 'swamp', time: 'night', price: 540, minW: 2.0, maxW: 7.0, color1: '#f472b6', color2: '#fef08a', shape: 'axolotl', desc: 'Gizemli lagünün bin yıllık efsanevi sakini.' },
+
+    // KUZEY DENİZ FENERİ BURNU (lighthouse)
+    { id: 'uskumrukral', name: 'Fener Ringası', rarity: 'common', biome: 'lighthouse', time: 'any', price: 30, minW: 0.2, maxW: 0.7, color1: '#60a5fa', color2: '#f1f5f9', shape: 'slim', desc: 'Deniz fenerinin ışığına toplanan gümüşi balıklar.' },
+    { id: 'kalkan', name: 'Dikenli Kalkan Balığı', rarity: 'rare', biome: 'lighthouse', time: 'any', price: 82, minW: 2.5, maxW: 9.0, color1: '#78716c', color2: '#d6d3d1', shape: 'ray', desc: 'Kuzey rüzgarlarının dövdüğü kumluk tabanda yatar.' },
+    { id: 'balonbaligi', name: 'Şişkin Kirpi Balığı', rarity: 'rare', biome: 'lighthouse', time: 'day', price: 120, minW: 0.5, maxW: 2.0, color1: '#facc15', color2: '#fef9c3', shape: 'puffer', desc: 'Oltaya yakalandığında kendini top gibi şişirir.' },
+    { id: 'kristaldenizanasi', name: 'Kristal Deniz Anası', rarity: 'epic', biome: 'lighthouse', time: 'night', price: 165, minW: 0.4, maxW: 1.8, color1: '#e879f9', color2: '#38bdf8', shape: 'jelly', desc: 'Yıldızlı gecelerde neon gibi parlayan zarif canlı.' },
+    { id: 'firtinabaligi', name: 'Fırtına Kanatlı Uçan Balık', rarity: 'epic', biome: 'lighthouse', time: 'any', price: 340, minW: 1.8, maxW: 5.5, color1: '#0ea5e9', color2: '#fde047', shape: 'flying', desc: 'Eski fener bekçisinin efsanelerinde bahsettiği fırtına habercisi!' },
+    { id: 'yildizbalina', name: 'Yıldız Işığı Beyaz Balina', rarity: 'legendary', biome: 'lighthouse', time: 'night', price: 850, minW: 120.0, maxW: 350.0, color1: '#f8fafc', color2: '#38bdf8', shape: 'whale', desc: 'Adanın en nadir, en görkemli ve en huzur verici efsanesi.' }
+];
+
+// 5 Kademeli Olta Sistemi (Ahşap, Bambu, Karbon, Altın, Poseidon)
+const SHOP_ITEMS = {
+    rods: [
+        { id: 'wood', name: 'Ahşap Olta Kamışı', level: 0, price: 0, reelSpeedBonus: 1.0, rareBonus: 0, color: '#92400e', desc: 'Basit ama iş gören el yapımı ahşap kamış.' },
+        { id: 'bamboo', name: 'Bambu Esnek Kamış', level: 1, price: 100, reelSpeedBonus: 1.2, rareBonus: 0.08, color: '#65a30d', desc: 'Hafif ve dengeli gövde. Makara sarımını %20 hızlandırır.' },
+        { id: 'carbon', name: 'Karbon Fiber Kamış', level: 2, price: 280, reelSpeedBonus: 1.45, rareBonus: 0.16, color: '#38bdf8', desc: 'Yüksek dayanıklılık ve nadir balık çekim gücü.' },
+        { id: 'gold', name: 'Altın Makaralı Kamış', level: 3, price: 650, reelSpeedBonus: 1.75, rareBonus: 0.25, color: '#fbbf24', desc: 'Destansı balıkları bile saniyeler içinde kıyıya çeker.' },
+        { id: 'poseidon', name: 'Poseidon Üçdişli Kamışı', level: 4, price: 1400, reelSpeedBonus: 2.2, rareBonus: 0.38, color: '#c084fc', desc: 'Deniz tanrılarının kudretini taşıyan efsanevi şaheser!' }
+    ],
+    consumables: [
+        { id: 'bait_basic', name: 'Solucan Yemi (x5)', price: 25, amount: 5, type: 'bait', desc: 'Balıkların oltaya vurma süresini %35 kısaltır.' },
+        { id: 'bait_pro', name: 'Parlak Sahte Yem (x3)', price: 75, amount: 3, type: 'proBait', desc: 'Nadir ve Efsanevi balıkların gelme şansını ikiye katlar!' },
+        { id: 'wood_bundle', name: 'Kuru Kamp Odunu (x4)', price: 30, amount: 4, type: 'wood', desc: 'Kamp ateşini yakmak veya harlamak için odun.' },
+        { id: 'ration', name: 'Konserve & Peksimet (x2)', price: 45, amount: 2, type: 'ration', desc: 'Anında +45 Açlık ve +20 Vücut Isısı verir.' }
+    ]
+};
+
+// Hikaye Modu Görevleri (6 Bölüm -> Kurtarma Teknesi Onarımı)
+const STORY_CHAPTERS = [
+    {
+        id: 0,
+        title: "Bölüm 1: Soğuk Gece ve İlk Ateş",
+        desc: "Kuzey Kamp Alanı'ndaki taş ateş çukuruna dokun (veya [E] bas) ve kamp ateşini yak!",
+        rewardText: "+60 Altın, +3 Odun",
+        checkComplete: (s) => s.campfireLitCount >= 1
+    },
+    {
+        id: 1,
+        title: "Bölüm 2: Hayatta Kalma Besini",
+        desc: "En az 3 balık tut ve kamp ateşinde 1 balık pişirip çantandan ye.",
+        rewardText: "+90 Altın, +2 Konserve",
+        checkComplete: (s) => s.cookedEatenCount >= 1 && s.totalCaught >= 3
+    },
+    {
+        id: 2,
+        title: "Bölüm 3: Ormanın Tatlı Pınarı",
+        desc: "Kuzeybatıdaki Orman Gölü'nün yanındaki Tatlı Su Pınarı'na gidip su iç ve mataranı doldur.",
+        rewardText: "+120 Altın, +3 Parlak Yem",
+        checkComplete: (s) => s.waterDrankFromSpring >= 1
+    },
+    {
+        id: 3,
+        title: "Bölüm 4: Eski Fener Bekçisi Kaptan Rıza",
+        desc: "Kuzey burnundaki Deniz Feneri'nin yanındaki Kaptan Rıza ile konuş.",
+        rewardText: "+150 Altın, Tekne Tamir Planı",
+        checkComplete: (s) => s.talkedToKeeper >= 1
+    },
+    {
+        id: 4,
+        title: "Bölüm 5: Efsanevi Deniz Parçası",
+        desc: "Kurtarma teknesinin pusulasını tamamlamak için herhangi bir Destansı veya Efsanevi balık yakala!",
+        rewardText: "+300 Altın, Tekne Motor Parçası",
+        checkComplete: (s) => s.caughtEpicOrStorm >= 1
+    },
+    {
+        id: 5,
+        title: "Bölüm 6: Kurtarma Teknesini Onar!",
+        desc: "Güney İskelesi'ndeki Kurtarma Teknesi'ne (veya Kaptan Rıza'ya) git ve tekneyi onarıp kurtuluş sinyalini ver!",
+        rewardText: "🏆 HİKAYE TAMAMLANDI! (Adada Özgürce Oynamaya Devam Edebilirsin)",
+        checkComplete: (s) => s.rescuedCompleted >= 1
+    }
+];
+
+/* ----------------------------------------------------------------------------
+ * 3. DETAYLI 24x32 PİKSEL-ART KARAKTER & BALIK SPRITE ÇİZİM MOTORU
+ * ---------------------------------------------------------------------------- */
+const PixelRenderer = {
+    // Rengi koyulaştırır veya açar (otomatik piksel gölgelendirme için)
+    shadeColor(hex, percent) {
+        const num = parseInt(hex.replace('#', ''), 16);
+        const amt = Math.round(2.55 * percent);
+        const R = Math.max(0, Math.min(255, (num >> 16) + amt));
+        const G = Math.max(0, Math.min(255, ((num >> 8) & 0x00FF) + amt));
+        const B = Math.max(0, Math.min(255, (num & 0x0000FF) + amt));
+        return '#' + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1);
+    },
+
+    // Yüksek detaylı, dış hatlı (outline), gölgeli ve göz kırpan 24x32 piksel karakter çizer
+    drawCharacter(ctx, x, y, scale, config, state) {
+        ctx.save();
+        ctx.translate(Math.round(x), Math.round(y));
+        const u = scale; // 1 piksel birimi
+
+        const outline = '#111622';
+        const skinBase = config.skinColor;
+        const skinShadow = this.shadeColor(skinBase, -18);
+        const skinHighlight = this.shadeColor(skinBase, 12);
+
+        const hairBase = config.hairColor;
+        const hairShadow = this.shadeColor(hairBase, -22);
+        const hairHighlight = this.shadeColor(hairBase, 20);
+
+        const shirtBase = config.shirtColor;
+        const shirtShadow = this.shadeColor(shirtBase, -20);
+        const shirtHighlight = this.shadeColor(shirtBase, 16);
+
+        const pantsBase = config.pantsColor;
+        const pantsShadow = this.shadeColor(pantsBase, -22);
+
+        // Yürüme 4 kareli animasyon ve nefes alma (idle breathing)
+        const walkCycle = Math.sin(state.frame * 0.24);
+        const bobY = state.anim === 'walk' ? -Math.abs(walkCycle) * 1.8 * u :
+                     Math.sin(state.frame * 0.06) * -0.6 * u;
+
+        // Zemin Gölgesi
+        ctx.fillStyle = 'rgba(9, 13, 24, 0.38)';
+        ctx.fillRect(-7 * u, 13 * u, 14 * u, 3 * u);
+        ctx.fillRect(-5 * u, 12 * u, 10 * u, 5 * u);
+
+        ctx.translate(0, Math.round(bobY));
+        if (state.dir === 'left') {
+            ctx.scale(-1, 1);
+        }
+
+        // --- 1. BACAKLAR VE ÇİZMELER (Dış Hatlı) ---
+        const legSwing = state.anim === 'walk' ? Math.round(walkCycle * 2.2) * u : 0;
+        // Arka Bacak
+        ctx.fillStyle = outline;
+        ctx.fillRect(-5 * u, 5 * u - legSwing * 0.4, 5 * u, 9 * u);
+        ctx.fillStyle = pantsShadow;
+        ctx.fillRect(-4 * u, 5 * u - legSwing * 0.4, 3 * u, 6 * u);
+        ctx.fillStyle = '#451a03'; // Çizme
+        ctx.fillRect(-4 * u, 11 * u - legSwing * 0.4, 4 * u, 2 * u);
+
+        // Ön Bacak
+        ctx.fillStyle = outline;
+        ctx.fillRect(0 * u, 5 * u + legSwing * 0.4, 5 * u, 9 * u);
+        ctx.fillStyle = pantsBase;
+        ctx.fillRect(1 * u, 5 * u + legSwing * 0.4, 3 * u, 6 * u);
+        ctx.fillStyle = '#78350f'; // Çizme
+        ctx.fillRect(1 * u, 11 * u + legSwing * 0.4, 4 * u, 2 * u);
+
+        // --- 2. GÖVDE VE KIYAFET TARZLARI ---
+        ctx.fillStyle = outline;
+        ctx.fillRect(-7 * u, -4 * u, 14 * u, 10 * u);
+
+        ctx.fillStyle = shirtBase;
+        ctx.fillRect(-6 * u, -3 * u, 12 * u, 8 * u);
+        // Gövde gölgesi ve vurgusu
+        ctx.fillStyle = shirtShadow;
+        ctx.fillRect(-6 * u, 3 * u, 12 * u, 2 * u);
+        ctx.fillStyle = shirtHighlight;
+        ctx.fillRect(-5 * u, -3 * u, 10 * u, 1.5 * u);
+
+        // Kıyafet Tarzı Detayları
+        const outfit = config.outfitStyle || 0;
+        if (outfit === 1) { // Oduncu Gömleği (Kareli Çizgiler)
+            ctx.fillStyle = shirtShadow;
+            ctx.fillRect(-2 * u, -3 * u, 1.5 * u, 8 * u);
+            ctx.fillRect(2 * u, -3 * u, 1.5 * u, 8 * u);
+            ctx.fillRect(-6 * u, 0 * u, 12 * u, 1.5 * u);
+        } else if (outfit === 2) { // Balıkçı Yeleği (Çok cepli haki/kahve yelek)
+            ctx.fillStyle = '#a16207';
+            ctx.fillRect(-6 * u, -3 * u, 4 * u, 8 * u);
+            ctx.fillRect(2 * u, -3 * u, 4 * u, 8 * u);
+            ctx.fillStyle = '#713f12';
+            ctx.fillRect(-5 * u, 1 * u, 2.5 * u, 2.5 * u); // Cep
+            ctx.fillRect(2.5 * u, 1 * u, 2.5 * u, 2.5 * u); // Cep
+        } else if (outfit === 3) { // Denizci Kazağı (Yatay Şeritler)
+            ctx.fillStyle = '#f8fafc';
+            ctx.fillRect(-6 * u, -1 * u, 12 * u, 1.5 * u);
+            ctx.fillRect(-6 * u, 2 * u, 12 * u, 1.5 * u);
+        }
+
+        // Kemer ve Toka
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(-6 * u, 4 * u, 12 * u, 1.5 * u);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillRect(1 * u, 4 * u, 2 * u, 1.5 * u);
+
+        // --- 3. KAFA VE YÜZ DETAYLARI ---
+        ctx.fillStyle = outline;
+        ctx.fillRect(-7 * u, -16 * u, 14 * u, 13 * u);
+
+        ctx.fillStyle = skinBase;
+        ctx.fillRect(-6 * u, -15 * u, 12 * u, 11 * u);
+        // Yüz gölgesi (çene ve arka yanak) ve alın parıltısı
+        ctx.fillStyle = skinShadow;
+        ctx.fillRect(-6 * u, -6 * u, 12 * u, 2 * u);
+        ctx.fillRect(-6 * u, -15 * u, 2 * u, 11 * u);
+        ctx.fillStyle = skinHighlight;
+        ctx.fillRect(-2 * u, -14 * u, 6 * u, 2 * u);
+
+        // Yanak Kızarıklığı
+        ctx.fillStyle = 'rgba(244, 63, 94, 0.35)';
+        ctx.fillRect(0 * u, -8.5 * u, 2 * u, 1.5 * u);
+        ctx.fillRect(4.5 * u, -8.5 * u, 1.5 * u, 1.5 * u);
+
+        // Gözler (Periyodik Göz Kırpma Animasyonu)
+        const isBlinking = (Math.floor(state.frame) % 190) > 183;
+        if (isBlinking) {
+            ctx.fillStyle = outline;
+            ctx.fillRect(1 * u, -10.5 * u, 2 * u, 1 * u);
+            ctx.fillRect(4 * u, -10.5 * u, 2 * u, 1 * u);
+        } else {
+            ctx.fillStyle = outline;
+            ctx.fillRect(1 * u, -11.5 * u, 2 * u, 2.8 * u);
+            ctx.fillRect(4 * u, -11.5 * u, 2 * u, 2.8 * u);
+            // Göz parıltısı
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(1.2 * u, -11.3 * u, 1 * u, 1 * u);
+            ctx.fillRect(4.2 * u, -11.3 * u, 1 * u, 1 * u);
+        }
+
+        // Sakal / Yüz Aksesuarları
+        const acc = config.accessory || 0;
+        if (acc === 1) { // Kirli Sakal
+            ctx.fillStyle = hairShadow;
+            ctx.fillRect(-3 * u, -7 * u, 9 * u, 3 * u);
+        } else if (acc === 2) { // Gür Denizci Sakalı
+            ctx.fillStyle = outline;
+            ctx.fillRect(-5 * u, -7 * u, 12 * u, 6 * u);
+            ctx.fillStyle = hairBase;
+            ctx.fillRect(-4 * u, -7 * u, 10 * u, 5 * u);
+            ctx.fillStyle = hairHighlight;
+            ctx.fillRect(-2 * u, -6 * u, 6 * u, 1.5 * u);
+        } else if (acc === 3) { // Pala Bıyık
+            ctx.fillStyle = outline;
+            ctx.fillRect(0 * u, -8.5 * u, 7 * u, 2.5 * u);
+            ctx.fillStyle = hairBase;
+            ctx.fillRect(0.5 * u, -8 * u, 6 * u, 1.5 * u);
+        } else if (acc === 4) { // Güneş Gözlüğü
+            ctx.fillStyle = outline;
+            ctx.fillRect(-1 * u, -12 * u, 8 * u, 3.5 * u);
+            ctx.fillStyle = '#0284c7';
+            ctx.fillRect(0.5 * u, -11.5 * u, 2.5 * u, 2 * u);
+            ctx.fillRect(3.8 * u, -11.5 * u, 2.5 * u, 2 * u);
+            ctx.fillStyle = '#bae6fd';
+            ctx.fillRect(1 * u, -11.2 * u, 1 * u, 1 * u);
+            ctx.fillRect(4.2 * u, -11.2 * u, 1 * u, 1 * u);
+        } else if (acc === 5) { // Korsan Göz Bandı
+            ctx.fillStyle = outline;
+            ctx.fillRect(-6 * u, -12 * u, 12 * u, 1 * u);
+            ctx.fillRect(3.5 * u, -12 * u, 3 * u, 3.5 * u);
+        }
+
+        // --- 4. SAÇ MODELLERİ (8 DETAYLI STİL) ---
+        const hs = config.hairStyle || 0;
+        if (hs !== 6) { // 6 = Kel / Dazlak
+            ctx.fillStyle = outline;
+            ctx.fillRect(-8 * u, -17 * u, 15 * u, 4 * u);
+            ctx.fillStyle = hairBase;
+            ctx.fillRect(-7 * u, -16 * u, 13 * u, 3 * u);
+            ctx.fillStyle = hairHighlight;
+            ctx.fillRect(-4 * u, -15.5 * u, 8 * u, 1.2 * u);
+
+            if (hs === 0) { // Kısa Dağınık
+                ctx.fillStyle = hairBase;
+                ctx.fillRect(-7 * u, -13 * u, 3 * u, 5 * u);
+                ctx.fillRect(2 * u, -14 * u, 3 * u, 2 * u);
+            } else if (hs === 1) { // Uzun Dalgalı
+                ctx.fillStyle = outline;
+                ctx.fillRect(-8 * u, -13 * u, 4 * u, 11 * u);
+                ctx.fillStyle = hairBase;
+                ctx.fillRect(-7 * u, -13 * u, 3 * u, 10 * u);
+            } else if (hs === 2) { // At Kuyruğu
+                ctx.fillStyle = outline;
+                ctx.fillRect(-11 * u, -14 * u, 4 * u, 8 * u);
+                ctx.fillStyle = hairBase;
+                ctx.fillRect(-10 * u, -13 * u, 3 * u, 6 * u);
+                ctx.fillStyle = '#ef4444'; // Saç tokası
+                ctx.fillRect(-8 * u, -13 * u, 1.5 * u, 2 * u);
+            } else if (hs === 3) { // Kıvırcık Kabarık
+                ctx.fillStyle = outline;
+                ctx.fillRect(-9 * u, -18 * u, 17 * u, 6 * u);
+                ctx.fillStyle = hairBase;
+                ctx.fillRect(-8 * u, -17 * u, 15 * u, 5 * u);
+                ctx.fillRect(-8 * u, -12 * u, 3 * u, 6 * u);
+            } else if (hs === 4) { // Yan Ayrık
+                ctx.fillStyle = hairHighlight;
+                ctx.fillRect(-1 * u, -16 * u, 7 * u, 2.5 * u);
+            } else if (hs === 5) { // Denizci Topuzu
+                ctx.fillStyle = outline;
+                ctx.fillRect(-4 * u, -20 * u, 6 * u, 4 * u);
+                ctx.fillStyle = hairBase;
+                ctx.fillRect(-3 * u, -19 * u, 4 * u, 3 * u);
+            } else if (hs === 7) { // Örgülü
+                ctx.fillStyle = outline;
+                ctx.fillRect(-7 * u, -13 * u, 3 * u, 12 * u);
+                ctx.fillStyle = hairBase;
+                ctx.fillRect(-6 * u, -13 * u, 2 * u, 11 * u);
+                ctx.fillStyle = hairHighlight;
+                ctx.fillRect(-6 * u, -10 * u, 2 * u, 1.5 * u);
+                ctx.fillRect(-6 * u, -6 * u, 2 * u, 1.5 * u);
+            }
+        }
+
+        // --- 5. ŞAPKA / BAŞLIK (6 DETAYLI SEÇENEK) ---
+        const hat = config.hat || 0;
+        if (hat === 1) { // Balıkçı Şapkası (Bucket Hat)
+            ctx.fillStyle = outline;
+            ctx.fillRect(-9 * u, -16 * u, 18 * u, 3 * u);
+            ctx.fillRect(-7 * u, -20 * u, 14 * u, 5 * u);
+            ctx.fillStyle = '#047857';
+            ctx.fillRect(-8 * u, -15.5 * u, 16 * u, 2 * u);
+            ctx.fillRect(-6 * u, -19 * u, 12 * u, 4 * u);
+            ctx.fillStyle = '#10b981';
+            ctx.fillRect(-5 * u, -18.5 * u, 10 * u, 1.5 * u);
+        } else if (hat === 2) { // Hasır Şapka
+            ctx.fillStyle = outline;
+            ctx.fillRect(-10 * u, -16 * u, 20 * u, 3 * u);
+            ctx.fillRect(-7 * u, -20 * u, 14 * u, 5 * u);
+            ctx.fillStyle = '#eab308';
+            ctx.fillRect(-9 * u, -15.5 * u, 18 * u, 2 * u);
+            ctx.fillRect(-6 * u, -19 * u, 12 * u, 4 * u);
+            ctx.fillStyle = '#dc2626'; // Kırmızı kurdele
+            ctx.fillRect(-6 * u, -17 * u, 12 * u, 1.5 * u);
+        } else if (hat === 3) { // Kaptan Şapkası
+            ctx.fillStyle = outline;
+            ctx.fillRect(-8 * u, -20 * u, 16 * u, 5 * u);
+            ctx.fillRect(-6 * u, -16 * u, 15 * u, 2.5 * u);
+            ctx.fillStyle = '#f8fafc';
+            ctx.fillRect(-7 * u, -19 * u, 14 * u, 3.5 * u);
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(-5 * u, -15.5 * u, 13 * u, 2 * u);
+            ctx.fillStyle = '#fbbf24'; // Altın arma
+            ctx.fillRect(0 * u, -18.5 * u, 3 * u, 2 * u);
+        } else if (hat === 4) { // Yün Bere
+            ctx.fillStyle = outline;
+            ctx.fillRect(-8 * u, -19 * u, 16 * u, 5 * u);
+            ctx.fillRect(-3 * u, -22 * u, 6 * u, 3 * u);
+            ctx.fillStyle = '#ea580c';
+            ctx.fillRect(-7 * u, -18 * u, 14 * u, 4 * u);
+            ctx.fillRect(-2 * u, -21 * u, 4 * u, 2 * u);
+        } else if (hat === 5) { // Korsan Bandanası
+            ctx.fillStyle = outline;
+            ctx.fillRect(-8 * u, -17 * u, 16 * u, 4 * u);
+            ctx.fillRect(-10 * u, -15 * u, 3 * u, 4 * u);
+            ctx.fillStyle = '#b91c1c';
+            ctx.fillRect(-7 * u, -16 * u, 14 * u, 3 * u);
+            ctx.fillRect(-9 * u, -14 * u, 2 * u, 3 * u);
+        }
+
+        // --- 6. ÖN KOL VE OLTA KAMIŞI ---
+        const isFishPose = state.anim === 'fish' || state.isFishing;
+        if (isFishPose) {
+            // Olta tutan uzanmış kol
+            ctx.fillStyle = outline;
+            ctx.fillRect(1 * u, -3 * u, 7 * u, 4 * u);
+            ctx.fillStyle = shirtBase;
+            ctx.fillRect(2 * u, -2.5 * u, 3 * u, 3 * u);
+            ctx.fillStyle = skinBase;
+            ctx.fillRect(5 * u, -2.5 * u, 2.5 * u, 3 * u);
+
+            // Detaylı Olta Kamışı ve Makara
+            const rodCol = state.rodColor || '#92400e';
+            ctx.strokeStyle = outline;
+            ctx.lineWidth = Math.max(3, u * 1.6);
+            ctx.beginPath();
+            ctx.moveTo(6 * u, -2 * u);
+            const tipX = 21 * u;
+            const tipY = -14 * u + Math.sin(state.frame * 0.14) * u;
+            ctx.lineTo(tipX, tipY);
+            ctx.stroke();
+
+            ctx.strokeStyle = rodCol;
+            ctx.lineWidth = Math.max(1.5, u * 0.9);
+            ctx.beginPath();
+            ctx.moveTo(6 * u, -2 * u);
+            ctx.lineTo(tipX, tipY);
+            ctx.stroke();
+
+            // Makara çarkı
+            ctx.fillStyle = '#cbd5e1';
+            ctx.fillRect(8 * u, -2 * u, 2.5 * u, 2.5 * u);
+        } else {
+            const armSwing = state.anim === 'walk' ? Math.round(-walkCycle * 1.8) * u : 0;
+            ctx.fillStyle = outline;
+            ctx.fillRect(-2 * u, -3 * u + armSwing * 0.4, 4.5 * u, 7 * u);
+            ctx.fillStyle = shirtBase;
+            ctx.fillRect(-1.5 * u, -2.5 * u + armSwing * 0.4, 3.5 * u, 3.5 * u);
+            ctx.fillStyle = skinBase;
+            ctx.fillRect(-1.5 * u, 1 * u + armSwing * 0.4, 3.5 * u, 2.5 * u);
+        }
+
+        ctx.restore();
+    },
+
+    // Piksel-art balık çizer
+    drawFishSprite(ctx, fish, x, y, size) {
+        ctx.save();
+        ctx.translate(x, y);
+        const u = size / 16;
+
+        ctx.fillStyle = fish.color1;
+        if (fish.shape === 'slim' || fish.shape === 'torpedo') {
+            ctx.fillRect(-6 * u, -2 * u, 11 * u, 4 * u);
+            ctx.fillRect(-4 * u, -3 * u, 7 * u, 6 * u);
+            ctx.fillStyle = fish.color2;
+            ctx.fillRect(-8 * u, -4 * u, 2 * u, 3 * u);
+            ctx.fillRect(-8 * u, 1 * u, 2 * u, 3 * u);
+        } else if (fish.shape === 'round' || fish.shape === 'puffer') {
+            ctx.fillRect(-5 * u, -4 * u, 10 * u, 8 * u);
+            ctx.fillRect(-3 * u, -6 * u, 6 * u, 12 * u);
+            ctx.fillStyle = fish.color2;
+            ctx.fillRect(-8 * u, -3 * u, 3 * u, 6 * u);
+        } else if (fish.shape === 'long') {
+            ctx.fillRect(-7 * u, -2 * u, 14 * u, 4 * u);
+            ctx.fillStyle = fish.color2;
+            ctx.fillRect(-9 * u, -3 * u, 3 * u, 6 * u);
+            ctx.fillRect(0 * u, -4 * u, 4 * u, 2 * u);
+        } else if (fish.shape === 'sword') {
+            ctx.fillRect(-5 * u, -3 * u, 9 * u, 6 * u);
+            ctx.fillStyle = fish.color2;
+            ctx.fillRect(4 * u, -1 * u, 6 * u, 2 * u);
+            ctx.fillRect(-8 * u, -4 * u, 3 * u, 8 * u);
+        } else if (fish.shape === 'octopus' || fish.shape === 'jelly') {
+            ctx.fillRect(-4 * u, -6 * u, 8 * u, 7 * u);
+            ctx.fillStyle = fish.color2;
+            ctx.fillRect(-5 * u, 1 * u, 2 * u, 5 * u);
+            ctx.fillRect(-1 * u, 1 * u, 2 * u, 6 * u);
+            ctx.fillRect(3 * u, 1 * u, 2 * u, 5 * u);
+        } else if (fish.shape === 'shark' || fish.shape === 'leviathan' || fish.shape === 'whale') {
+            ctx.fillRect(-7 * u, -3 * u, 14 * u, 6 * u);
+            ctx.fillRect(-2 * u, -7 * u, 3 * u, 4 * u);
+            ctx.fillStyle = fish.color2;
+            ctx.fillRect(-9 * u, -5 * u, 3 * u, 10 * u);
+        } else {
+            ctx.fillRect(-5 * u, -3 * u, 10 * u, 6 * u);
+            ctx.fillStyle = fish.color2;
+            ctx.fillRect(-8 * u, -4 * u, 3 * u, 8 * u);
+        }
+
+        // Göz
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(3 * u, -1.5 * u, 1.8 * u, 1.8 * u);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(3.4 * u, -1.5 * u, 0.8 * u, 0.8 * u);
+
+        ctx.restore();
+    },
+
+    getFishIconURL(fish) {
+        const c = document.createElement('canvas');
+        c.width = 48;
+        c.height = 48;
+        const ctx = c.getContext('2d');
+        ctx.imageSmoothingEnabled = false;
+        this.drawFishSprite(ctx, fish, 24, 24, 42);
+        return c.toDataURL();
+    }
+};
+
+/* ----------------------------------------------------------------------------
+ * 4. KARAKTER OLUŞTURUCU STÜDYOSU
+ * ---------------------------------------------------------------------------- */
+const CharCreator = {
+    skinColors: ['#ffdbac', '#f1c27d', '#e0ac69', '#c68642', '#8d5524', '#5c3818'],
+    hairColors: ['#1e293b', '#451a03', '#92400e', '#eab308', '#dc2626', '#f8fafc', '#0d9488', '#7c3aed'],
+    shirtColors: ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#f8fafc', '#334155'],
+    pantsColors: ['#1e3a8a', '#334155', '#78350f', '#065f46', '#18181b', '#9a3412'],
+    hairStyles: ['Kısa Dağınık', 'Uzun Dalgalı', 'At Kuyruğu', 'Kıvırcık', 'Yan Ayrık', 'Denizci Topuzu', 'Kel / Dazlak', 'Örgülü'],
+    hats: ['Şapkasız', 'Balıkçı Şapkası', 'Hasır Şapka', 'Kaptan Şapkası', 'Yün Bere', 'Korsan Bandanası'],
+    accessories: ['Yok', 'Kirli Sakal', 'Gür Denizci Sakalı', 'Pala Bıyık', 'Güneş Gözlüğü', 'Korsan Göz Bandı'],
+    outfitStyles: ['Sade Tişört', 'Oduncu Gömleği', 'Balıkçı Yeleği', 'Denizci Kazağı'],
+
+    config: {
+        name: 'Kaptan Deniz',
+        skinColor: '#f1c27d',
+        hairColor: '#451a03',
+        shirtColor: '#3b82f6',
+        pantsColor: '#1e3a8a',
+        hairStyle: 0,
+        hat: 2,
+        accessory: 0,
+        outfitStyle: 2
+    },
+
+    previewAnim: 'fish',
+    previewFrame: 0,
+
+    init() {
+        this.renderSwatches('swatchSkin', this.skinColors, 'skinColor');
+        this.renderSwatches('swatchHair', this.hairColors, 'hairColor');
+        this.renderSwatches('swatchShirt', this.shirtColors, 'shirtColor');
+        this.renderSwatches('swatchPants', this.pantsColors, 'pantsColor');
+        this.updateLabels();
+        this.startPreviewLoop();
+    },
+
+    renderSwatches(containerId, colors, key) {
+        const el = document.getElementById(containerId);
+        if (!el) return;
+        el.innerHTML = '';
+        colors.forEach(col => {
+            const btn = document.createElement('button');
+            btn.className = 'swatch-btn' + (this.config[key] === col ? ' active' : '');
+            btn.style.backgroundColor = col;
+            btn.onclick = () => {
+                this.config[key] = col;
+                this.renderSwatches(containerId, colors, key);
+                AudioEngine.playSfx('coin');
+            };
+            el.appendChild(btn);
+        });
+    },
+
+    cycleOption(key, dir) {
+        const listMap = {
+            hairStyle: this.hairStyles,
+            hat: this.hats,
+            accessory: this.accessories,
+            outfitStyle: this.outfitStyles
+        };
+        const len = listMap[key].length;
+        this.config[key] = (this.config[key] + dir + len) % len;
+        this.updateLabels();
+        AudioEngine.playSfx('coin');
+    },
+
+    updateName(val) {
+        this.config.name = val.trim() || 'Gezgin Balıkçı';
+    },
+
+    setPreviewAnim(anim) {
+        this.previewAnim = anim;
+    },
+
+    randomize() {
+        const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+        this.config.skinColor = pick(this.skinColors);
+        this.config.hairColor = pick(this.hairColors);
+        this.config.shirtColor = pick(this.shirtColors);
+        this.config.pantsColor = pick(this.pantsColors);
+        this.config.hairStyle = Math.floor(Math.random() * this.hairStyles.length);
+        this.config.hat = Math.floor(Math.random() * this.hats.length);
+        this.config.accessory = Math.floor(Math.random() * this.accessories.length);
+        this.config.outfitStyle = Math.floor(Math.random() * this.outfitStyles.length);
+        this.init();
+        AudioEngine.playSfx('cast');
+    },
+
+    updateLabels() {
+        document.getElementById('labelHairStyle').textContent = this.hairStyles[this.config.hairStyle];
+        document.getElementById('labelHat').textContent = this.hats[this.config.hat];
+        document.getElementById('labelAccessory').textContent = this.accessories[this.config.accessory];
+        document.getElementById('labelOutfitStyle').textContent = this.outfitStyles[this.config.outfitStyle];
+    },
+
+    startPreviewLoop() {
+        const canvas = document.getElementById('previewCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const loop = () => {
+            if (!document.getElementById('startScreen').classList.contains('hidden')) {
+                ctx.imageSmoothingEnabled = false;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Zemin çimi ve ahşap iskele detayı
+                ctx.fillStyle = '#065f46';
+                ctx.fillRect(0, 165, canvas.width, 40);
+                ctx.fillStyle = '#10b981';
+                ctx.fillRect(0, 165, canvas.width, 4);
+
+                // Karakterin üstünde keskin yarı şeffaf isim etiketi
+                ctx.font = '600 15px "Rubik", sans-serif';
+                ctx.textAlign = 'center';
+                const nameText = this.config.name;
+                const tw = ctx.measureText(nameText).width + 16;
+                ctx.fillStyle = 'rgba(15, 23, 42, 0.52)';
+                ctx.beginPath();
+                ctx.roundRect(canvas.width / 2 - tw / 2, 14, tw, 24, 5);
+                ctx.fill();
+                ctx.fillStyle = 'rgba(248, 250, 252, 0.88)';
+                ctx.fillText(nameText, canvas.width / 2, 31);
+
+                // 4.2x Büyük Piksel Karakter Önizlemesi
+                PixelRenderer.drawCharacter(ctx, canvas.width / 2 - 10, 118, 4.2, this.config, {
+                    anim: this.previewAnim,
+                    frame: this.previewFrame++,
+                    dir: 'right',
+                    isFishing: this.previewAnim === 'fish',
+                    rodColor: '#92400e'
+                });
+            }
+            requestAnimationFrame(loop);
+        };
+        loop();
+    }
+};
+
+/* ----------------------------------------------------------------------------
+ * 5. GENİŞ ÇOK BİYOMLU ADA HARİTASI VE ETKİLEŞİMLİ NESNELER
+ * ---------------------------------------------------------------------------- */
+const World = {
+    TILE_SIZE: 32,
+    COLS: 64,
+    ROWS: 48,
+    map: [], // 0: Derin Su, 1: Sığ Su, 2: Kum, 3: Çimen, 4: Orman Zemini, 5: Kaya, 6: Ahşap İskele, 7: Lagün Suyu, 8: Lagün Toprağı
+    decorations: [],
+    fishShadows: [],
+    interactables: [],
+
+    generate() {
+        this.map = [];
+        this.decorations = [];
+        this.interactables = [];
+
+        const cx = this.COLS / 2;
+        const cy = this.ROWS / 2;
+
+        for (let r = 0; r < this.ROWS; r++) {
+            const row = [];
+            for (let c = 0; c < this.COLS; c++) {
+                const dx = (c - cx) / (this.COLS * 0.42);
+                const dy = (r - cy) / (this.ROWS * 0.40);
+                const angle = Math.atan2(dy, dx);
+                const noise = Math.sin(angle * 4) * 0.08 + Math.cos(angle * 7 + r * 0.1) * 0.05;
+                const dist = Math.sqrt(dx * dx + dy * dy) + noise;
+
+                // Orman İçi Tatlı Su Gölü (c ~ 21, r ~ 17)
+                const lakeDist = Math.hypot((c - 21) / 5.5, (r - 17) / 4.2);
+
+                if (dist > 0.96) {
+                    row.push(0); // Derin Okyanus
+                } else if (dist > 0.85) {
+                    row.push(c < 18 && r > 18 && r < 34 ? 7 : 1);
+                } else if (dist > 0.74) {
+                    if (c > 45 && r > 14 && r < 34) row.push(5);
+                    else if (c < 18 && r > 16 && r < 35) row.push(8);
+                    else row.push(2);
+                } else {
+                    if (lakeDist < 0.75) {
+                        row.push(1);
+                    } else if (lakeDist < 0.95) {
+                        row.push(2);
+                    } else if (r < 14 && c > 26 && c < 38) {
+                        row.push(5);
+                    } else if (c < 25 && r < 26) {
+                        row.push(4);
+                    } else {
+                        row.push(3);
+                    }
+                }
+            }
+            this.map.push(row);
+        }
+
+        // 1. GÜNEY AHŞAP İSKELESİ
+        for (let r = 37; r <= 43; r++) {
+            this.map[r][31] = 6;
+            this.map[r][32] = 6;
+        }
+
+        // 2. DOĞU MERCAN RESİFİ İSKELESİ
+        for (let c = 49; c <= 54; c++) {
+            this.map[24][c] = 6;
+            this.map[25][c] = 6;
+        }
+
+        // 3. ETKİLEŞİMLİ NESNELER
+        this.interactables.push({
+            id: 'merchant',
+            type: 'merchant',
+            name: 'Tüccar Hasan',
+            x: 34 * this.TILE_SIZE,
+            y: 36 * this.TILE_SIZE
+        });
+
+        this.interactables.push({
+            id: 'boat',
+            type: 'boat',
+            name: 'Kurtarma & Açık Deniz Teknesi',
+            x: 29 * this.TILE_SIZE,
+            y: 41 * this.TILE_SIZE
+        });
+
+        this.interactables.push({
+            id: 'campfire',
+            type: 'campfire',
+            name: 'Kamp Ateşi',
+            x: 32 * this.TILE_SIZE,
+            y: 15 * this.TILE_SIZE,
+            fuel: 0,
+            isCustom: false
+        });
+
+        this.interactables.push({
+            id: 'tent',
+            type: 'tent',
+            name: 'Balıkçı Çadırı (Uyuma Yeri)',
+            x: 28 * this.TILE_SIZE,
+            y: 35 * this.TILE_SIZE
+        });
+
+        this.interactables.push({
+            id: 'spring',
+            type: 'spring',
+            name: 'Tatlı Su Pınarı',
+            x: 21 * this.TILE_SIZE,
+            y: 12 * this.TILE_SIZE
+        });
+
+        this.interactables.push({
+            id: 'keeper',
+            type: 'keeper',
+            name: 'Kaptan Rıza',
+            x: 32 * this.TILE_SIZE,
+            y: 9 * this.TILE_SIZE
+        });
+
+        // Ağaçlar, Toplanabilir Odunlar ve Kuru Çalılar
+        for (let r = 4; r < this.ROWS - 4; r++) {
+            for (let c = 4; c < this.COLS - 4; c++) {
+                const tile = this.map[r][c];
+                const nearImportant = this.interactables.some(obj => Math.hypot(obj.x - c * 32, obj.y - r * 32) < 96);
+                if (nearImportant) continue;
+
+                if ((tile === 3 || tile === 4) && Math.random() < (tile === 4 ? 0.13 : 0.045)) {
+                    this.decorations.push({
+                        type: 'tree',
+                        x: c * this.TILE_SIZE + 16,
+                        y: r * this.TILE_SIZE + 16,
+                        variant: Math.floor(Math.random() * 2)
+                    });
+                } else if ((tile === 3 || tile === 4 || tile === 8) && Math.random() < 0.032) {
+                    this.interactables.push({
+                        id: 'bush_' + c + '_' + r,
+                        type: 'bush',
+                        name: 'Kuru Çalı',
+                        x: c * this.TILE_SIZE + 16,
+                        y: r * this.TILE_SIZE + 16,
+                        collected: false,
+                        respawnTimer: 0
+                    });
+                } else if ((tile === 3 || tile === 4 || tile === 8) && Math.random() < 0.022) {
+                    this.interactables.push({
+                        id: 'wood_' + c + '_' + r,
+                        type: 'wood',
+                        name: 'Kamp Odunu',
+                        x: c * this.TILE_SIZE + 16,
+                        y: r * this.TILE_SIZE + 16,
+                        collected: false,
+                        respawnTimer: 0
+                    });
+                } else if (tile === 2 && Math.random() < 0.02) {
+                    this.decorations.push({
+                        type: 'shell',
+                        x: c * this.TILE_SIZE + 16,
+                        y: r * this.TILE_SIZE + 16
+                    });
+                }
+            }
+        }
+
+        // Deniz Feneri Kulesi
+        this.decorations.push({
+            type: 'lighthouse',
+            x: 30 * this.TILE_SIZE,
+            y: 8 * this.TILE_SIZE
+        });
+
+        this.spawnFishShadows(30);
+    },
+
+    spawnFishShadows(count) {
+        this.fishShadows = [];
+        for (let i = 0; i < count; i++) {
+            for (let tries = 0; tries < 40; tries++) {
+                const c = Math.floor(Math.random() * (this.COLS - 4)) + 2;
+                const r = Math.floor(Math.random() * (this.ROWS - 4)) + 2;
+                const tile = this.map[r][c];
+                if (tile === 0 || tile === 1 || tile === 7) {
+                    this.fishShadows.push({
+                        x: c * this.TILE_SIZE + 16,
+                        y: r * this.TILE_SIZE + 16,
+                        vx: (Math.random() - 0.5) * 14,
+                        vy: (Math.random() - 0.5) * 14,
+                        size: 7 + Math.random() * 9,
+                        timer: Math.random() * 10
+                    });
+                    break;
+                }
+            }
+        }
+    },
+
+    isWaterTile(wx, wy) {
+        const c = Math.floor(wx / this.TILE_SIZE);
+        const r = Math.floor(wy / this.TILE_SIZE);
+        if (r < 0 || r >= this.ROWS || c < 0 || c >= this.COLS) return true;
+        const t = this.map[r][c];
+        return t === 0 || t === 1 || t === 7;
+    },
+
+    isWalkable(wx, wy) {
+        const c = Math.floor(wx / this.TILE_SIZE);
+        const r = Math.floor(wy / this.TILE_SIZE);
+        if (r < 1 || r >= this.ROWS - 1 || c < 1 || c >= this.COLS - 1) return false;
+        const t = this.map[r][c];
+        return t === 2 || t === 3 || t === 4 || t === 5 || t === 6 || t === 8;
+    },
+
+    // Tıklanan su noktasına en yakın yürünebilir kıyı/iskele noktasını bulur
+    findNearestShoreline(waterX, waterY) {
+        const wc = Math.floor(waterX / this.TILE_SIZE);
+        const wr = Math.floor(waterY / this.TILE_SIZE);
+        let best = null;
+        let bestDist = Infinity;
+
+        for (let dr = -8; dr <= 8; dr++) {
+            for (let dc = -8; dc <= 8; dc++) {
+                const r = wr + dr;
+                const c = wc + dc;
+                const wx = c * this.TILE_SIZE + 16;
+                const wy = r * this.TILE_SIZE + 16;
+                if (this.isWalkable(wx, wy)) {
+                    const d = Math.hypot(wx - waterX, wy - waterY) + Math.hypot(wx - Game.player.x, wy - Game.player.y) * 0.25;
+                    if (d < bestDist) {
+                        bestDist = d;
+                        best = { x: wx, y: wy };
+                    }
+                }
+            }
+        }
+        return best;
+    },
+
+    getBiomeAt(wx, wy) {
+        const c = Math.floor(wx / this.TILE_SIZE);
+        const r = Math.floor(wy / this.TILE_SIZE);
+        if (r < 14) return { id: 'lighthouse', name: '🗼 Kuzey Deniz Feneri Burnu' };
+        if (c < 20 && r >= 16 && r <= 36) return { id: 'swamp', name: '🌿 Batı Gizemli Lagün' };
+        if (c > 43 && r >= 14 && r <= 35) return { id: 'cliffs', name: '🪸 Doğu Mercan Kayalıkları' };
+        if (c >= 16 && c <= 28 && r >= 12 && r <= 23) return { id: 'lake', name: '🏞️ Orman Tatlı Su Gölü' };
+        return { id: 'beach', name: '🏖️ Güney Kumsalı & İskele' };
+    }
+};
+
+/* ----------------------------------------------------------------------------
+ * 6. ANA OYUN YÖNETİCİSİ, KUSURSUZ DÜNYA-İÇİ BALIKÇILIK & DOKUNMATİK HAREKET
+ * ---------------------------------------------------------------------------- */
+const Game = {
+    canvas: null,
+    ctx: null,
+    minimapCanvas: null,
+    minimapCtx: null,
+    dpr: 1,
+    isRunning: false,
+    lastTime: 0,
+    camera: { x: 0, y: 0 },
+
+    // Oyuncu Fizik & Otomatik Yürüme Hedefi (Mobil & Fare Tıklaması için)
+    player: {
+        x: 32 * 32,
+        y: 38 * 32,
+        speed: 145,
+        dir: 'down',
+        anim: 'idle',
+        frame: 0,
+        moveTarget: null,       // { x, y }
+        pendingCastTarget: null,// { x, y } su noktası
+        pendingInteract: null   // etkileşilecek nesne
+    },
+
+    // Dünya-İçi Sorunsuz Olta Durumu ('none' | 'casted' | 'biting' | 'reeling')
+    fishing: {
+        state: 'none',
+        bobberX: 0,
+        bobberY: 0,
+        waitTimer: 0,
+        biteWindow: 0,
+        reelProgress: 0,      // 0..1 arası (1 olunca balık sudan fırlar!)
+        targetFish: null,
+        isHoldingInput: false,
+        autoReelBurst: 0,     // Tek tık / tek Space basışında bile akıcı sarım sağlar
+        reelTickTimer: 0
+    },
+
+    // Tekil Basış ve Basılı Tutma Kilidi (At-Çek Döngüsünü Tamamen Önler)
+    inputLock: {
+        spaceDown: false,
+        spaceLocked: false,
+        pointerDown: false,
+        pointerLocked: false
+    },
+
+    // Balık Yakalandığında Sudan Sıçrama Animasyonu & Parçacıklar
+    catchingFishAnim: null, // { fish, startX, startY, endX, endY, t }
+    particles: [],
+
+    // Kalıcı Oyun Durumu
+    state: {
+        mode: 'zen',
+        charConfig: null,
+        gold: 50,
+        xp: 0,
+        level: 1,
+        skillPoints: 0,
+        skills: { luck: 0, speed: 0, doubleCatch: 0, valueBonus: 0 },
+        combo: 0,
+        rodLevel: 0,
+        inventory: {
+            fish: [],
+            bait: 5,
+            proBait: 1,
+            wood: 3,
+            bush: 2,
+            ration: 1,
+            waterCharges: 3
+        },
+        activeBait: 'none',
+        pokedex: {},
+        timeOfDay: 8.5,
+        weather: 'sunny',
+        weatherTimer: 95,
+        hunger: 100,
+        thirst: 100,
+        warmth: 100,
+        campfireFuel: 0,
+        customCampfires: [],
+        storyChapter: 0,
+        storyStats: {
+            campfireLitCount: 0,
+            cookedEatenCount: 0,
+            totalCaught: 0,
+            waterDrankFromSpring: 0,
+            talkedToKeeper: 0,
+            caughtEpicOrStorm: 0,
+            rescuedCompleted: 0
+        }
+    },
+
+    keys: {},
+
+    init() {
+        this.canvas = document.getElementById('gameCanvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.minimapCanvas = document.getElementById('minimapCanvas');
+        this.minimapCtx = this.minimapCanvas.getContext('2d');
+
+        this.resizeCanvas();
+        window.addEventListener('resize', () => this.resizeCanvas());
+
+        World.generate();
+        CharCreator.init();
+        this.checkExistingSave();
+        this.bindInputs();
+
+        this.lastTime = performance.now();
+        requestAnimationFrame((t) => this.loop(t));
+    },
+
+    resizeCanvas() {
+        this.dpr = Math.min(window.devicePixelRatio || 1, 2);
+        this.canvas.width = Math.floor(window.innerWidth * this.dpr);
+        this.canvas.height = Math.floor(window.innerHeight * this.dpr);
+        this.ctx.imageSmoothingEnabled = false;
+    },
+
+    checkExistingSave() {
+        try {
+            const raw = localStorage.getItem('unutulmus_ada_save_v2');
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (parsed && parsed.charConfig) {
+                    const btn = document.getElementById('btnLoadSave');
+                    btn.classList.remove('hidden');
+                    btn.textContent = `💾 Devam Et (${parsed.charConfig.name})`;
+                }
+            }
+        } catch (e) {}
+    },
+
+    saveGame() {
+        try {
+            // Özel yakılan kamp ateşlerini de kayda dahil et
+            this.state.customCampfires = World.interactables
+                .filter(o => o.type === 'campfire' && o.isCustom && o.fuel > 0)
+                .map(o => ({ id: o.id, x: o.x, y: o.y, fuel: o.fuel }));
+            localStorage.setItem('unutulmus_ada_save_v2', JSON.stringify(this.state));
+        } catch (e) {}
+    },
+
+    loadExistingSave() {
+        try {
+            const raw = localStorage.getItem('unutulmus_ada_save_v2');
+            if (!raw) return;
+            const parsed = JSON.parse(raw);
+            this.state = { ...this.state, ...parsed };
+            if (this.state.inventory.bush === undefined) this.state.inventory.bush = 2;
+            if (!Array.isArray(this.state.customCampfires)) this.state.customCampfires = [];
+
+            // Haritadaki özel kamp ateşlerini geri yükle
+            World.interactables = World.interactables.filter(o => !(o.type === 'campfire' && o.isCustom));
+            const mainFire = World.interactables.find(o => o.id === 'campfire');
+            if (mainFire) mainFire.fuel = this.state.campfireFuel || 0;
+
+            this.state.customCampfires.forEach(cf => {
+                if (cf.fuel > 0) {
+                    World.interactables.push({
+                        id: cf.id,
+                        type: 'campfire',
+                        name: 'Kamp Ateşi',
+                        x: cf.x,
+                        y: cf.y,
+                        fuel: cf.fuel,
+                        isCustom: true
+                    });
+                }
+            });
+
+            CharCreator.config = { ...this.state.charConfig };
+            this.enterWorld();
+            UI.toast('💾 Kayıtlı oyun başarıyla yüklendi!', 'emerald');
+        } catch (e) {}
+    },
+
+    getModeName(mode) {
+        if (mode === 'zen') return 'SERBEST MOD';
+        if (mode === 'arcade') return 'HIZLI KASILMA';
+        return 'HİKAYE & HAYATTA KALMA';
+    },
+
+    startNewGame(mode) {
+        AudioEngine.init();
+        AudioEngine.playSfx('catch');
+
+        // Önceki oturumdan kalan özel ateşleri temizle ve ana ateşi sıfırla
+        World.interactables = World.interactables.filter(o => !(o.type === 'campfire' && o.isCustom));
+        const mainFire = World.interactables.find(o => o.id === 'campfire');
+        if (mainFire) mainFire.fuel = 0;
+
+        this.state = {
+            mode: mode,
+            charConfig: { ...CharCreator.config },
+            gold: mode === 'arcade' ? 120 : 50,
+            xp: 0,
+            level: 1,
+            skillPoints: mode === 'arcade' ? 2 : 0,
+            skills: { luck: 0, speed: 0, doubleCatch: 0, valueBonus: 0 },
+            combo: 0,
+            rodLevel: 0,
+            inventory: {
+                fish: [],
+                bait: mode === 'arcade' ? 10 : 5,
+                proBait: mode === 'arcade' ? 3 : 1,
+                wood: 3,
+                bush: 2,
+                ration: 1,
+                waterCharges: 3
+            },
+            activeBait: 'none',
+            pokedex: {},
+            timeOfDay: 8.5,
+            weather: 'sunny',
+            weatherTimer: 95,
+            hunger: 100,
+            thirst: 100,
+            warmth: 100,
+            campfireFuel: 0,
+            customCampfires: [],
+            storyChapter: 0,
+            storyStats: {
+                campfireLitCount: 0,
+                cookedEatenCount: 0,
+                totalCaught: 0,
+                waterDrankFromSpring: 0,
+                talkedToKeeper: 0,
+                caughtEpicOrStorm: 0,
+                rescuedCompleted: 0
+            }
+        };
+
+        this.enterWorld();
+        this.saveGame();
+    },
+
+    enterWorld() {
+        document.getElementById('startScreen').classList.add('hidden');
+        document.getElementById('gameHUD').classList.remove('hidden');
+
+        this.player.x = 32 * World.TILE_SIZE;
+        this.player.y = 38 * World.TILE_SIZE;
+        this.player.moveTarget = null;
+        this.player.pendingCastTarget = null;
+        this.player.pendingInteract = null;
+        this.fishing.state = 'none';
+        this.isRunning = true;
+
+        document.getElementById('hudPlayerName').textContent = this.state.charConfig.name;
+        document.getElementById('hudModeBadge').textContent = this.getModeName(this.state.mode);
+
+        const survivalPanel = document.getElementById('survivalBarsPanel');
+        const storyPanel = document.getElementById('storyQuestPanel');
+        const skillsBtn = document.getElementById('btnSkillsHUD');
+
+        survivalPanel.classList.toggle('hidden', this.state.mode !== 'story');
+        storyPanel.classList.toggle('hidden', this.state.mode !== 'story');
+        skillsBtn.classList.toggle('hidden', this.state.mode !== 'arcade');
+        if (this.state.mode === 'arcade') skillsBtn.classList.add('flex');
+
+        if (this.state.mode === 'story') {
+            UI.toast('📜 Unutulmuş Ada\'ya hoş geldin! Kuzey kamp alanında ateş yak.', 'amber');
+        } else if (this.state.mode === 'arcade') {
+            UI.toast('⚡ Hızlı Kasılma Modu! Arka arkaya balık tutarak kombo yap!', 'amber');
+        } else {
+            UI.toast('🌿 Serbest Mod! Çalı toplayıp istediğin yerde ateş yak, gece çadırda uyu.', 'emerald');
+        }
+
+        this.updateHUD();
+    },
+
+    getZoom() {
+        return window.innerWidth < 640 ? 1.45 : 1.85;
+    },
+
+    screenToWorld(clientX, clientY) {
+        const zoom = this.getZoom();
+        const wx = (clientX - window.innerWidth / 2) / zoom + this.camera.x;
+        const wy = (clientY - window.innerHeight / 2) / zoom + this.camera.y;
+        return { x: wx, y: wy };
+    },
+
+    bindInputs() {
+        // HTML butonlarının odaklanıp SPACE tuşunu tetiklemesini önle
+        document.addEventListener('click', (e) => {
+            const btn = e.target.closest('button');
+            if (btn) btn.blur();
+        });
+
+        window.addEventListener('keydown', (e) => {
+            const isSpace = e.code === 'Space' || e.key === ' ';
+            if (isSpace) {
+                e.preventDefault();
+                if (!this.isRunning) return;
+                // Otomatik klavye tekrarını (e.repeat) ve zaten basılı olan tuşu yoksay
+                if (e.repeat || this.inputLock.spaceDown) return;
+
+                this.inputLock.spaceDown = true;
+                this.keys['Space'] = true;
+
+                if (!UI.isModalOpen() && !this.inputLock.spaceLocked) {
+                    this.handlePrimaryPress(null, 'space');
+                }
+                return;
+            }
+
+            this.keys[e.code] = true;
+            if (!this.isRunning) return;
+
+            if (e.code === 'KeyE') {
+                if (!UI.isModalOpen()) this.interactNearby();
+            } else if (e.code === 'KeyF') {
+                if (!UI.isModalOpen()) this.buildCampfireHere();
+            } else if (e.code === 'KeyI' || e.code === 'KeyB') {
+                UI.isModalOpen() ? UI.closeModal() : UI.openModal('bag');
+            } else if (e.code === 'Escape') {
+                UI.closeModal();
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            const isSpace = e.code === 'Space' || e.key === ' ';
+            if (isSpace) {
+                this.keys['Space'] = false;
+                this.inputLock.spaceDown = false;
+                this.inputLock.spaceLocked = false;
+                this.fishing.isHoldingInput = this.inputLock.pointerDown;
+                return;
+            }
+            this.keys[e.code] = false;
+        });
+
+        // Pencere odağı kaybolursa basılı tutma kilitlerini sıfırla
+        window.addEventListener('blur', () => {
+            this.keys = {};
+            this.inputLock.spaceDown = false;
+            this.inputLock.spaceLocked = false;
+            this.inputLock.pointerDown = false;
+            this.inputLock.pointerLocked = false;
+            this.fishing.isHoldingInput = false;
+        });
+
+        // Fare ve Dokunmatik Ekran Kontrolleri (Sıfır Sanal Buton, Doğrudan Dünya Etkileşimi)
+        const onPointerDown = (clientX, clientY) => {
+            if (!this.isRunning || UI.isModalOpen()) return;
+            if (this.inputLock.pointerDown) return;
+            this.inputLock.pointerDown = true;
+            if (this.inputLock.pointerLocked) return;
+
+            const worldPt = this.screenToWorld(clientX, clientY);
+            this.handlePrimaryPress(worldPt, 'pointer');
+        };
+
+        const onPointerUp = () => {
+            this.inputLock.pointerDown = false;
+            this.inputLock.pointerLocked = false;
+            this.fishing.isHoldingInput = this.inputLock.spaceDown;
+        };
+
+        this.canvas.addEventListener('mousedown', (e) => {
+            if (e.button === 0) onPointerDown(e.clientX, e.clientY);
+        });
+        window.addEventListener('mouseup', onPointerUp);
+
+        this.canvas.addEventListener('touchstart', (e) => {
+            if (e.touches.length > 0) {
+                e.preventDefault();
+                onPointerDown(e.touches[0].clientX, e.touches[0].clientY);
+            }
+        }, { passive: false });
+        window.addEventListener('touchend', onPointerUp);
+        window.addEventListener('touchcancel', onPointerUp);
+    },
+
+    lockActiveInputs() {
+        if (this.inputLock.spaceDown) this.inputLock.spaceLocked = true;
+        if (this.inputLock.pointerDown) this.inputLock.pointerLocked = true;
+    },
+
+    // Tek noktadan hem Klavye (SPACE) hem Dokunma/Tıklama yönetimi (Tekil Basış Korumalı)
+    handlePrimaryPress(worldPt, source = 'space') {
+        // 1. Eğer balık vurduysa ('biting') veya şu an makara sarılıyorsa ('reeling'):
+        if (this.fishing.state === 'biting') {
+            this.fishing.state = 'reeling';
+            this.fishing.reelProgress = 0.28; // Tek basışta bile güçlü başlangıç ivmesi
+            this.fishing.isHoldingInput = true;
+            this.fishing.autoReelBurst = 0.45; // Tek tık/basışta dahi 0.45 sn otomatik sarar
+            AudioEngine.playSfx('reelTick');
+            return;
+        }
+
+        if (this.fishing.state === 'reeling') {
+            this.fishing.isHoldingInput = true;
+            this.fishing.autoReelBurst = 0.40; // Her basışta veya basılı tutuşta sarım devam eder
+            return;
+        }
+
+        // 2. Eğer olta şu an suda bekliyorsa ('casted'):
+        if (this.fishing.state === 'casted') {
+            if (!worldPt) {
+                // Klavye SPACE ile oltayı geri topla ve tuş bırakılana kadar kilitle
+                this.fishing.state = 'none';
+                this.fishing.isHoldingInput = false;
+                if (source === 'space') this.inputLock.spaceLocked = true;
+                UI.toast('Oltayı topladın.', 'slate');
+                return;
+            }
+            // Haritada başka yere tıklandıysa oltayı toplayıp oraya hareket et
+            this.fishing.state = 'none';
+            this.fishing.isHoldingInput = false;
+        }
+
+        // 3. Klavye SPACE ile önünde su varsa direkt olta at (Tuş bırakılana kadar kilitle)
+        if (!worldPt) {
+            if (source === 'space') this.inputLock.spaceLocked = true;
+            const target = this.getFrontCastPoint();
+            if (World.isWaterTile(target.x, target.y)) {
+                this.castLineTo(target.x, target.y);
+            } else {
+                this.interactNearby();
+            }
+            return;
+        }
+
+        if (source === 'pointer') this.inputLock.pointerLocked = true;
+
+        // 4. Haritada Etkileşimli Bir Nesneye Dokunuldu mu? (Kamp Ateşi, Çadır, Çalı, Pınar, Tüccar, Tekne, Odun)
+        const clickedObj = World.interactables.find(obj =>
+            !((obj.type === 'wood' || obj.type === 'bush') && obj.collected) &&
+            Math.hypot(obj.x - worldPt.x, obj.y - worldPt.y) < 34
+        );
+
+        if (clickedObj) {
+            this.player.pendingCastTarget = null;
+            this.player.pendingInteract = clickedObj;
+            this.player.moveTarget = { x: clickedObj.x, y: clickedObj.y + 12 };
+            return;
+        }
+
+        // 5. Haritada Suya Dokunuldu mu? -> Kıyıya yürü ve otomatik olta at!
+        if (World.isWaterTile(worldPt.x, worldPt.y)) {
+            const shore = World.findNearestShoreline(worldPt.x, worldPt.y);
+            if (shore) {
+                this.player.pendingInteract = null;
+                this.player.pendingCastTarget = { x: worldPt.x, y: worldPt.y };
+                this.player.moveTarget = shore;
+            }
+            return;
+        }
+
+        // 6. Haritada Yürünebilir Karaya Dokunuldu -> Oraya yürü!
+        if (World.isWalkable(worldPt.x, worldPt.y)) {
+            this.player.pendingCastTarget = null;
+            this.player.pendingInteract = null;
+            this.player.moveTarget = { x: worldPt.x, y: worldPt.y };
+        }
+    },
+
+    getFrontCastPoint() {
+        const dist = 64;
+        let dx = 0, dy = 0;
+        if (this.player.dir === 'up') dy = -dist;
+        else if (this.player.dir === 'down') dy = dist;
+        else if (this.player.dir === 'left') dx = -dist;
+        else if (this.player.dir === 'right') dx = dist;
+        return { x: this.player.x + dx, y: this.player.y + dy };
+    },
+
+    castLineTo(waterX, waterY) {
+        // Karakterin yüzünü suya çevir
+        const dx = waterX - this.player.x;
+        const dy = waterY - this.player.y;
+        if (Math.abs(dx) > Math.abs(dy)) {
+            this.player.dir = dx < 0 ? 'left' : 'right';
+        } else {
+            this.player.dir = dy < 0 ? 'up' : 'down';
+        }
+
+        // Maksimum olta menzilini sınırla
+        const maxDist = 115;
+        const dist = Math.hypot(dx, dy);
+        let bx = waterX;
+        let by = waterY;
+        if (dist > maxDist) {
+            bx = this.player.x + (dx / dist) * maxDist;
+            by = this.player.y + (dy / dist) * maxDist;
+        }
+
+        if (!World.isWaterTile(bx, by)) {
+            const front = this.getFrontCastPoint();
+            if (!World.isWaterTile(front.x, front.y)) return;
+            bx = front.x;
+            by = front.y;
+        }
+
+        this.fishing.bobberX = bx;
+        this.fishing.bobberY = by;
+        this.fishing.state = 'casted';
+        this.fishing.reelProgress = 0;
+        this.fishing.targetFish = this.rollFishForSpot(bx, by);
+
+        // Yem kullanılıyorsa bekleme süresi kısalır
+        let baseWait = this.state.mode === 'arcade' ? 2.0 : 3.2;
+        if (this.state.activeBait === 'bait' && this.state.inventory.bait > 0) baseWait *= 0.65;
+        else if (this.state.activeBait === 'proBait' && this.state.inventory.proBait > 0) baseWait *= 0.7;
+
+        this.fishing.waitTimer = baseWait + Math.random() * 2.0;
+        AudioEngine.playSfx('cast');
+        setTimeout(() => AudioEngine.playSfx('splash'), 160);
+    },
+
+    rollFishForSpot(bx, by) {
+        const biome = World.getBiomeAt(bx, by).id;
+        const isNight = this.state.timeOfDay >= 19.5 || this.state.timeOfDay < 5.5;
+        const currentTimeTag = isNight ? 'night' : 'day';
+
+        let pool = FISH_DATABASE.filter(f =>
+            (f.biome === biome || Math.random() < 0.15) &&
+            (f.time === 'any' || f.time === currentTimeTag)
+        );
+        if (pool.length === 0) pool = FISH_DATABASE;
+
+        const rod = SHOP_ITEMS.rods[this.state.rodLevel];
+        const luckSkill = (this.state.skills.luck || 0) * 0.06;
+        const usedProBait = this.state.activeBait === 'proBait' && this.state.inventory.proBait > 0;
+        const rareBoost = rod.rareBonus + luckSkill + (usedProBait ? 0.35 : 0) + (this.state.weather === 'rainy' ? 0.12 : 0);
+
+        const weights = {
+            common: Math.max(15, 56 - rareBoost * 42),
+            rare: 26 + rareBoost * 18,
+            epic: 8 + rareBoost * 14,
+            legendary: 2 + rareBoost * 7
+        };
+
+        const weightedPool = [];
+        pool.forEach(fish => {
+            const w = Math.max(1, Math.round(weights[fish.rarity]));
+            for (let i = 0; i < w; i++) weightedPool.push(fish);
+        });
+
+        return weightedPool[Math.floor(Math.random() * weightedPool.length)];
+    },
+
+    // Balık Yakalandığında Açılır Pencere OLMADAN Akıcı Dünya-İçi Ödül Akışı
+    completeFishCatch(fish) {
+        this.fishing.state = 'none';
+        this.fishing.isHoldingInput = false;
+        this.fishing.autoReelBurst = 0;
+        // Balık yakalandığı anda tuş/işaretçi hala basılıysa kilitle ki tekrar olta atmasın
+        this.lockActiveInputs();
+
+        // Aktif yem tüketimi
+        if (this.state.activeBait === 'bait' && this.state.inventory.bait > 0) {
+            this.state.inventory.bait--;
+            if (this.state.inventory.bait === 0) this.state.activeBait = 'none';
+        } else if (this.state.activeBait === 'proBait' && this.state.inventory.proBait > 0) {
+            this.state.inventory.proBait--;
+            if (this.state.inventory.proBait === 0) this.state.activeBait = 'none';
+        }
+
+        AudioEngine.playSfx('catch');
+        this.state.combo++;
+
+        // Sudan oyuncunun eline zıplayan balık animasyonu & parıltı parçacıkları
+        this.catchingFishAnim = {
+            fish: fish,
+            startX: this.fishing.bobberX,
+            startY: this.fishing.bobberY,
+            endX: this.player.x,
+            endY: this.player.y - 12,
+            t: 0
+        };
+        for (let i = 0; i < 16; i++) {
+            this.particles.push({
+                x: this.fishing.bobberX,
+                y: this.fishing.bobberY,
+                vx: (Math.random() - 0.5) * 90,
+                vy: -40 - Math.random() * 80,
+                life: 0.7 + Math.random() * 0.4,
+                color: i % 2 === 0 ? '#38bdf8' : '#fef08a'
+            });
+        }
+
+        // Çift balık şansı
+        const doubleChance = (this.state.skills.doubleCatch || 0) * 0.14;
+        const catchCount = (this.state.mode === 'arcade' && Math.random() < doubleChance) ? 2 : 1;
+
+        for (let c = 0; c < catchCount; c++) {
+            const weight = +(fish.minW + Math.random() * (fish.maxW - fish.minW)).toFixed(2);
+            this.state.inventory.fish.push({
+                fishId: fish.id,
+                weight: weight,
+                cooked: false
+            });
+
+            const isNew = !this.state.pokedex[fish.id];
+            if (isNew) {
+                this.state.pokedex[fish.id] = { count: 1, maxWeight: weight };
+            } else {
+                this.state.pokedex[fish.id].count++;
+                if (weight > this.state.pokedex[fish.id].maxWeight) {
+                    this.state.pokedex[fish.id].maxWeight = weight;
+                }
+            }
+
+            this.state.storyStats.totalCaught++;
+            if (fish.rarity === 'epic' || fish.rarity === 'legendary') {
+                this.state.storyStats.caughtEpicOrStorm++;
+            }
+
+            const rInfo = RARITY_INFO[fish.rarity];
+            const modeMult = this.state.mode === 'arcade' ? 2.2 : 1.0;
+            const comboMult = this.state.mode === 'arcade' ? (1 + Math.min(2, this.state.combo * 0.1)) : 1.0;
+            const gainedXp = Math.round(20 * rInfo.xpMult * modeMult * comboMult);
+            this.addXP(gainedXp);
+
+            // Kompakt, engelleyici olmayan üst-orta bildirim kartı (2.6 sn sonra kendiliğinden kaybolur)
+            UI.showFishToast(fish, weight, gainedXp, isNew, catchCount > 1 && c === 1);
+        }
+
+        this.checkStoryProgress();
+        this.updateHUD();
+        this.saveGame();
+    },
+
+    addXP(amount) {
+        this.state.xp += amount;
+        const reqXp = this.state.level * 100;
+        if (this.state.xp >= reqXp) {
+            this.state.xp -= reqXp;
+            this.state.level++;
+            if (this.state.mode === 'arcade') {
+                this.state.skillPoints++;
+                UI.toast(`⭐ SEVİYE ATLADIN! (Sv.${this.state.level}) +1 Yetenek Puanı Kazandın!`, 'amber');
+            } else {
+                UI.toast(`⭐ SEVİYE ATLADIN! (Sv.${this.state.level})`, 'amber');
+            }
+        }
+    },
+
+    interactNearby() {
+        let closest = null;
+        let closestDist = 56;
+        World.interactables.forEach(obj => {
+            if ((obj.type === 'wood' || obj.type === 'bush') && obj.collected) return;
+            const d = Math.hypot(this.player.x - obj.x, this.player.y - obj.y);
+            if (d < closestDist) {
+                closestDist = d;
+                closest = obj;
+            }
+        });
+        if (closest) this.executeInteract(closest);
+    },
+
+    executeInteract(obj) {
+        if (obj.type === 'merchant') {
+            UI.openModal('shop');
+        } else if (obj.type === 'campfire') {
+            UI.openModal('campfire', obj);
+        } else if (obj.type === 'tent') {
+            UI.openModal('tent');
+        } else if (obj.type === 'spring') {
+            this.state.thirst = 100;
+            this.state.inventory.waterCharges = 3;
+            this.state.storyStats.waterDrankFromSpring++;
+            AudioEngine.playSfx('eat');
+            UI.toast('💧 Berrak pınardan su içtin ve mataranı (3/3) doldurdun!', 'emerald');
+            this.checkStoryProgress();
+            this.updateHUD();
+            this.saveGame();
+        } else if (obj.type === 'bush' && !obj.collected) {
+            obj.collected = true;
+            obj.respawnTimer = 35;
+            this.state.inventory.bush = (this.state.inventory.bush || 0) + 1;
+            AudioEngine.playSfx('coin');
+            UI.toast(`🌿 Kuru çalı topladın! (+1 Çalı | Toplam: ${this.state.inventory.bush})`, 'emerald');
+            this.updateHUD();
+            this.saveGame();
+        } else if (obj.type === 'wood' && !obj.collected) {
+            obj.collected = true;
+            obj.respawnTimer = 45;
+            this.state.inventory.wood++;
+            AudioEngine.playSfx('coin');
+            UI.toast('🪵 Kuru kamp odunu topladın! (+1 Odun)', 'amber');
+            this.updateHUD();
+            this.saveGame();
+        } else if (obj.type === 'keeper') {
+            this.state.storyStats.talkedToKeeper++;
+            this.checkStoryProgress();
+            UI.openModal('story');
+        } else if (obj.type === 'boat') {
+            if (this.state.mode === 'story') {
+                UI.openModal('story');
+            } else {
+                // Hızlı Kasılma veya Serbest Modda tekneden derin denize olta at!
+                this.castLineTo(obj.x - 36, obj.y + 42);
+                UI.toast('⛵ Tekne kenarından derin sulara olta attın!', 'emerald');
+            }
+        }
+    },
+
+    // İstediğin Yerde Çalı veya Odun ile Kamp Ateşi Yakma
+    buildCampfireHere() {
+        if (!this.isRunning) return;
+        if (UI.isModalOpen()) UI.closeModal();
+
+        const bushCount = this.state.inventory.bush || 0;
+        const woodCount = this.state.inventory.wood || 0;
+
+        // Yakında zaten bir kamp ateşi varsa onun menüsünü aç
+        const nearFire = World.interactables.find(o => o.type === 'campfire' && Math.hypot(o.x - this.player.x, o.y - this.player.y) < 42);
+        if (nearFire) {
+            UI.openModal('campfire', nearFire);
+            return;
+        }
+
+        if (bushCount <= 0 && woodCount <= 0) {
+            UI.toast('⚠️ Ateş yakmak için çalı veya odun toplamalısın!', 'amber');
+            return;
+        }
+
+        // Karakterin baktığı yönde uygun zemin noktası belirle
+        let offX = 0, offY = 18;
+        if (this.player.dir === 'up') { offX = 0; offY = -24; }
+        else if (this.player.dir === 'down') { offX = 0; offY = 24; }
+        else if (this.player.dir === 'left') { offX = -24; offY = 4; }
+        else if (this.player.dir === 'right') { offX = 24; offY = 4; }
+
+        let fx = this.player.x + offX;
+        let fy = this.player.y + offY;
+
+        if (!World.isWalkable(fx, fy)) {
+            fx = this.player.x;
+            fy = this.player.y + 8;
+        }
+
+        const c = Math.floor(fx / World.TILE_SIZE);
+        const r = Math.floor(fy / World.TILE_SIZE);
+        const tile = (World.map[r] && World.map[r][c] !== undefined) ? World.map[r][c] : 0;
+
+        // Suda veya ahşap iskelede ateş yakılmasını engelle
+        if (!World.isWalkable(fx, fy) || tile === 6) {
+            UI.toast('⚠️ Suda veya ahşap iskelede ateş yakamazsın! Toprak veya kum zemine geç.', 'red');
+            return;
+        }
+
+        // Önce çalıyı, yoksa odunu kullan
+        let usedLabel = '';
+        if (bushCount > 0) {
+            this.state.inventory.bush--;
+            usedLabel = '1 Kuru Çalı';
+        } else {
+            this.state.inventory.wood--;
+            usedLabel = '1 Odun';
+        }
+
+        const newFire = {
+            id: 'custom_fire_' + Date.now(),
+            type: 'campfire',
+            name: 'Kamp Ateşi',
+            x: fx,
+            y: fy,
+            fuel: 120,
+            isCustom: true
+        };
+        World.interactables.push(newFire);
+
+        this.state.campfireFuel = Math.max(this.state.campfireFuel, 120);
+        this.state.storyStats.campfireLitCount++;
+        AudioEngine.playSfx('fire');
+
+        for (let i = 0; i < 14; i++) {
+            this.particles.push({
+                x: fx,
+                y: fy - 4,
+                vx: (Math.random() - 0.5) * 60,
+                vy: -30 - Math.random() * 60,
+                life: 0.6 + Math.random() * 0.4,
+                color: i % 2 === 0 ? '#f97316' : '#facc15'
+            });
+        }
+
+        UI.toast(`🔥 ${usedLabel} ile ateş yaktın! Ateşe dokunarak balık pişirebilirsin.`, 'amber');
+        this.checkStoryProgress();
+        this.updateHUD();
+        this.saveGame();
+    },
+
+    // Gece Olduğunda Çadırda Sabaha Kadar Uyuma
+    sleepUntilMorning() {
+        const isNight = this.state.timeOfDay >= 19.0 || this.state.timeOfDay < 6.0;
+        if (!isNight) {
+            UI.toast('☀️ Henüz gündüz! Gece olduğunda (19:00 - 06:00) uyuyabilirsin.', 'amber');
+            return;
+        }
+
+        UI.closeModal();
+        const overlay = document.getElementById('sleepOverlay');
+        overlay.classList.remove('hidden');
+        requestAnimationFrame(() => {
+            overlay.classList.remove('opacity-0');
+        });
+
+        AudioEngine.playSfx('coin');
+        setTimeout(() => {
+            this.state.timeOfDay = 7.5; // 07:30 Sabah
+            this.state.weather = 'sunny';
+            this.state.warmth = 100;
+            this.updateHUD();
+            this.saveGame();
+
+            overlay.classList.add('opacity-0');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                UI.toast('☀️ Günaydın! Dinlenmiş bir şekilde yeni sabaha uyandın.', 'emerald');
+            }, 320);
+        }, 850);
+    },
+
+    checkStoryProgress() {
+        if (this.state.mode !== 'story') return;
+        const ch = STORY_CHAPTERS[this.state.storyChapter];
+        if (ch && ch.checkComplete(this.state.storyStats)) {
+            if (this.state.storyChapter === 0) {
+                this.state.gold += 60;
+                this.state.inventory.wood += 3;
+            } else if (this.state.storyChapter === 1) {
+                this.state.gold += 90;
+                this.state.inventory.ration += 2;
+            } else if (this.state.storyChapter === 2) {
+                this.state.gold += 120;
+                this.state.inventory.proBait += 3;
+            } else if (this.state.storyChapter === 3) {
+                this.state.gold += 150;
+            } else if (this.state.storyChapter === 4) {
+                this.state.gold += 300;
+            }
+
+            UI.toast(`🏆 GÖREV TAMAMLANDI: ${ch.title}! (${ch.rewardText})`, 'amber');
+            AudioEngine.playSfx('catch');
+            if (this.state.storyChapter < STORY_CHAPTERS.length - 1) {
+                this.state.storyChapter++;
+            }
+            this.updateHUD();
+            this.saveGame();
+        }
+    },
+
+    /* ---------------- ANA OYUN DÖNGÜSÜ ---------------- */
+    loop(now) {
+        const dt = Math.min(0.05, (now - this.lastTime) / 1000);
+        this.lastTime = now;
+
+        this.update(dt);
+        this.render();
+
+        requestAnimationFrame((t) => this.loop(t));
+    },
+
+    update(dt) {
+        // Suda yüzen balık gölgeleri (olta atılıysa şamandıraya doğru yaklaşırlar!)
+        World.fishShadows.forEach(fs => {
+            fs.timer += dt;
+            if (this.fishing.state === 'casted' || this.fishing.state === 'biting') {
+                const distBobber = Math.hypot(this.fishing.bobberX - fs.x, this.fishing.bobberY - fs.y);
+                if (distBobber < 130 && distBobber > 10) {
+                    fs.vx += ((this.fishing.bobberX - fs.x) / distBobber) * 28 * dt;
+                    fs.vy += ((this.fishing.bobberY - fs.y) / distBobber) * 28 * dt;
+                }
+            }
+            const speed = Math.hypot(fs.vx, fs.vy);
+            if (speed > 22) {
+                fs.vx = (fs.vx / speed) * 22;
+                fs.vy = (fs.vy / speed) * 22;
+            }
+
+            const nx = fs.x + fs.vx * dt;
+            const ny = fs.y + fs.vy * dt;
+            if (World.isWaterTile(nx, ny)) {
+                fs.x = nx;
+                fs.y = ny;
+            } else {
+                fs.vx = -fs.vx;
+                fs.vy = -fs.vy;
+            }
+            if (fs.timer > 6) {
+                fs.timer = 0;
+                fs.vx = (Math.random() - 0.5) * 16;
+                fs.vy = (Math.random() - 0.5) * 16;
+            }
+        });
+
+        // Sudan sıçrayan balık animasyonu & parçacıklar
+        if (this.catchingFishAnim) {
+            this.catchingFishAnim.t += dt * 2.4;
+            if (this.catchingFishAnim.t >= 1) {
+                this.catchingFishAnim = null;
+            }
+        }
+        this.particles.forEach(p => {
+            p.x += p.vx * dt;
+            p.y += p.vy * dt;
+            p.vy += 180 * dt;
+            p.life -= dt;
+        });
+        this.particles = this.particles.filter(p => p.life > 0);
+
+        if (!this.isRunning) {
+            this.camera.x = 32 * 32 + Math.cos(performance.now() * 0.0002) * 180;
+            this.camera.y = 26 * 32 + Math.sin(performance.now() * 0.0002) * 140;
+            return;
+        }
+
+        // 1. Gece / Gündüz & Hava Durumu
+        this.state.timeOfDay = (this.state.timeOfDay + dt * 0.085) % 24;
+        this.state.weatherTimer -= dt;
+        if (this.state.weatherTimer <= 0) {
+            const weathers = ['sunny', 'sunny', 'windy', 'rainy', 'foggy'];
+            this.state.weather = weathers[Math.floor(Math.random() * weathers.length)];
+            this.state.weatherTimer = 85 + Math.random() * 65;
+        }
+
+        // 2. Kamp Ateşleri, Çalılar ve Odun Yenilenmesi
+        let nearestFireFuel = 0;
+        World.interactables.forEach(obj => {
+            if (obj.type === 'campfire' && obj.fuel > 0) {
+                obj.fuel = Math.max(0, obj.fuel - dt);
+                const d = Math.hypot(this.player.x - obj.x, this.player.y - obj.y);
+                if (d < 140 && obj.fuel > nearestFireFuel) {
+                    nearestFireFuel = obj.fuel;
+                }
+            } else if ((obj.type === 'wood' || obj.type === 'bush') && obj.collected) {
+                obj.respawnTimer -= dt;
+                if (obj.respawnTimer <= 0) obj.collected = false;
+            }
+        });
+        this.state.campfireFuel = nearestFireFuel;
+
+        // 3. Hikaye Modu Hayatta Kalma Barları
+        if (this.state.mode === 'story' && !UI.isModalOpen()) {
+            const isNight = this.state.timeOfDay >= 19.5 || this.state.timeOfDay < 5.5;
+            const isColdWeather = this.state.weather === 'rainy' || this.state.weather === 'windy';
+
+            this.state.hunger = Math.max(0, this.state.hunger - dt * 0.36);
+            this.state.thirst = Math.max(0, this.state.thirst - dt * 0.50);
+
+            const hasWarmFireNearby = World.interactables.some(
+                o => o.type === 'campfire' && o.fuel > 0 && Math.hypot(this.player.x - o.x, this.player.y - o.y) < 115
+            );
+
+            if (hasWarmFireNearby) {
+                this.state.warmth = Math.min(100, this.state.warmth + dt * 6.5);
+            } else if (isNight || isColdWeather) {
+                const coldRate = (isNight ? 0.62 : 0.24) + (isColdWeather ? 0.42 : 0);
+                this.state.warmth = Math.max(0, this.state.warmth - dt * coldRate);
+            } else {
+                this.state.warmth = Math.min(100, this.state.warmth + dt * 0.4);
+            }
+
+            if (this.state.hunger <= 0 || this.state.thirst <= 0 || this.state.warmth <= 0) {
+                this.player.x = 32 * World.TILE_SIZE;
+                this.player.y = 16 * World.TILE_SIZE;
+                this.player.moveTarget = null;
+                this.state.hunger = Math.max(40, this.state.hunger);
+                this.state.thirst = Math.max(40, this.state.thirst);
+                this.state.warmth = Math.max(50, this.state.warmth);
+                this.fishing.state = 'none';
+                UI.toast('😵 Bitkin düştün ve kamp alanında uyandın! Ateş yakıp karnını doyurmalısın.', 'red');
+            }
+        }
+
+        // 4. Dünya-İçi Balık Tutma & Makara Sarma Mantığı (SPACE basılı tutma veya tek basış)
+        if (this.fishing.state === 'casted') {
+            this.fishing.waitTimer -= dt;
+            if (this.fishing.waitTimer <= 0) {
+                this.fishing.state = 'biting';
+                this.fishing.biteWindow = 2.8;
+                AudioEngine.playSfx('bite');
+                // Balık vurduğunda oyuncu SPACE'e veya ekrana basılı tutuyorsa doğrudan sarmaya geç
+                if (this.inputLock.spaceDown || this.inputLock.pointerDown) {
+                    this.fishing.state = 'reeling';
+                    this.fishing.reelProgress = 0.25;
+                    this.fishing.isHoldingInput = true;
+                    this.fishing.autoReelBurst = 0.35;
+                    AudioEngine.playSfx('reelTick');
+                }
+            }
+        } else if (this.fishing.state === 'biting') {
+            this.fishing.biteWindow -= dt;
+            if (this.fishing.biteWindow <= 0) {
+                this.fishing.state = 'none';
+                this.fishing.isHoldingInput = false;
+                this.lockActiveInputs();
+                this.state.combo = 0;
+                UI.toast('⏳ Geç kaldın, balık yemi alıp kaçtı!', 'amber');
+            }
+        } else if (this.fishing.state === 'reeling') {
+            if (this.fishing.autoReelBurst > 0) {
+                this.fishing.autoReelBurst -= dt;
+            }
+            const isHoldingNow = this.inputLock.spaceDown || this.inputLock.pointerDown;
+            const isReelingActive = isHoldingNow || this.fishing.autoReelBurst > 0;
+            const rod = SHOP_ITEMS.rods[this.state.rodLevel];
+            const skillSpeed = 1 + (this.state.skills.speed || 0) * 0.15;
+            const fishDifficulty = RARITY_INFO[this.fishing.targetFish.rarity].reelTime;
+
+            if (isReelingActive) {
+                const fillRate = (1.15 * rod.reelSpeedBonus * skillSpeed) / fishDifficulty;
+                this.fishing.reelProgress += fillRate * dt;
+                this.fishing.reelTickTimer -= dt;
+                if (this.fishing.reelTickTimer <= 0) {
+                    this.fishing.reelTickTimer = 0.14;
+                    AudioEngine.playSfx('reelTick');
+                }
+            } else {
+                // Basılı tutulmazsa yavaşça geri kayar
+                this.fishing.reelProgress -= 0.25 * dt;
+            }
+
+            if (this.fishing.reelProgress >= 1) {
+                this.completeFishCatch(this.fishing.targetFish);
+            } else if (this.fishing.reelProgress <= 0) {
+                this.fishing.state = 'none';
+                this.fishing.isHoldingInput = false;
+                this.lockActiveInputs();
+                this.state.combo = 0;
+                UI.toast(`💨 ${this.fishing.targetFish.name} oltadan kurtulup kaçtı!`, 'red');
+            }
+        }
+
+        // 5. Oyuncu Hareketi (Klavye WASD/Oklar VEYA Dokunmatik/Fare Hedef Yürüyüşü)
+        let moveX = 0, moveY = 0;
+        if (!UI.isModalOpen() && this.fishing.state === 'none') {
+            if (this.keys['KeyW'] || this.keys['ArrowUp']) moveY -= 1;
+            if (this.keys['KeyS'] || this.keys['ArrowDown']) moveY += 1;
+            if (this.keys['KeyA'] || this.keys['ArrowLeft']) moveX -= 1;
+            if (this.keys['KeyD'] || this.keys['ArrowRight']) moveX += 1;
+
+            // Klavye tuşuna basıldıysa otomatik tıklama hedefini iptal et
+            if (moveX !== 0 || moveY !== 0) {
+                this.player.moveTarget = null;
+                this.player.pendingCastTarget = null;
+                this.player.pendingInteract = null;
+            } else if (this.player.moveTarget) {
+                const dx = this.player.moveTarget.x - this.player.x;
+                const dy = this.player.moveTarget.y - this.player.y;
+                const dist = Math.hypot(dx, dy);
+                if (dist > 6) {
+                    moveX = dx / dist;
+                    moveY = dy / dist;
+                } else {
+                    // Hedefe ulaşıldı!
+                    this.player.moveTarget = null;
+                    if (this.player.pendingCastTarget) {
+                        const ct = this.player.pendingCastTarget;
+                        this.player.pendingCastTarget = null;
+                        this.castLineTo(ct.x, ct.y);
+                    } else if (this.player.pendingInteract) {
+                        const io = this.player.pendingInteract;
+                        this.player.pendingInteract = null;
+                        this.executeInteract(io);
+                    }
+                }
+            }
+        }
+
+        const mag = Math.hypot(moveX, moveY);
+        if (mag > 0.05) {
+            const nx = (moveX / Math.max(1, mag)) * this.player.speed * dt;
+            const ny = (moveY / Math.max(1, mag)) * this.player.speed * dt;
+
+            let moved = false;
+            if (World.isWalkable(this.player.x + nx, this.player.y)) {
+                this.player.x += nx;
+                moved = true;
+            }
+            if (World.isWalkable(this.player.x, this.player.y + ny)) {
+                this.player.y += ny;
+                moved = true;
+            }
+
+            // Engele takıldıysa otomatik hedefi tamamla
+            if (!moved && this.player.moveTarget) {
+                this.player.moveTarget = null;
+                if (this.player.pendingCastTarget) {
+                    const ct = this.player.pendingCastTarget;
+                    this.player.pendingCastTarget = null;
+                    this.castLineTo(ct.x, ct.y);
+                }
+            }
+
+            if (Math.abs(moveX) > Math.abs(moveY)) {
+                this.player.dir = moveX < 0 ? 'left' : 'right';
+            } else {
+                this.player.dir = moveY < 0 ? 'up' : 'down';
+            }
+            this.player.anim = 'walk';
+            this.player.frame += dt * 60;
+        } else {
+            this.player.anim = this.fishing.state !== 'none' ? 'fish' : 'idle';
+            this.player.frame += dt * 60;
+        }
+
+        // Kamera yumuşak takibi
+        this.camera.x += (this.player.x - this.camera.x) * 0.15;
+        this.camera.y += (this.player.y - this.camera.y) * 0.15;
+
+        if (Math.floor(this.player.frame) % 10 === 0) {
+            this.updateHUD();
+        }
+    },
+
+    updateHUD() {
+        document.getElementById('hudGold').textContent = this.state.gold;
+        document.getElementById('hudLevel').textContent = this.state.level;
+        const reqXp = this.state.level * 100;
+        document.getElementById('hudXpBar').style.width = Math.min(100, (this.state.xp / reqXp) * 100) + '%';
+
+        const comboEl = document.getElementById('hudComboBadge');
+        if (this.state.mode === 'arcade' && this.state.combo > 1) {
+            comboEl.textContent = `🔥x${this.state.combo}`;
+            comboEl.classList.remove('hidden');
+        } else {
+            comboEl.classList.add('hidden');
+        }
+
+        const biome = World.getBiomeAt(this.player.x, this.player.y);
+        document.getElementById('hudBiome').textContent = biome.name;
+        document.getElementById('mobileBiomeTag').textContent = biome.name.replace(/^[^\s]+\s/, '');
+
+        const hh = Math.floor(this.state.timeOfDay).toString().padStart(2, '0');
+        const mm = Math.floor((this.state.timeOfDay % 1) * 60).toString().padStart(2, '0');
+        let period = 'Gündüz';
+        if (this.state.timeOfDay >= 5 && this.state.timeOfDay < 8) period = 'Şafak';
+        else if (this.state.timeOfDay >= 17.5 && this.state.timeOfDay < 20) period = 'Gün Batımı';
+        else if (this.state.timeOfDay >= 20 || this.state.timeOfDay < 5) period = 'Gece';
+        document.getElementById('hudTime').textContent = `${hh}:${mm} (${period})`;
+
+        const weatherNames = {
+            sunny: '🌤️ Güneşli',
+            windy: '🍃 Rüzgarlı',
+            rainy: '🌧️ Yağmurlu',
+            foggy: '🌫️ Sisli'
+        };
+        document.getElementById('hudWeather').textContent = weatherNames[this.state.weather];
+
+        if (this.state.mode === 'story') {
+            const h = Math.round(this.state.hunger);
+            const t = Math.round(this.state.thirst);
+            const w = Math.round(this.state.warmth);
+            document.getElementById('barHunger').style.width = h + '%';
+            document.getElementById('valHunger').textContent = h + '%';
+            document.getElementById('barThirst').style.width = t + '%';
+            document.getElementById('valThirst').textContent = t + '%';
+            document.getElementById('barWarmth').style.width = w + '%';
+            document.getElementById('valWarmth').textContent = w + '%';
+            document.getElementById('hudWoodCount').textContent = this.state.inventory.wood;
+            document.getElementById('hudWaterCount').textContent = `${this.state.inventory.waterCharges}/3`;
+
+            const ch = STORY_CHAPTERS[this.state.storyChapter];
+            if (ch) {
+                document.getElementById('hudQuestTitle').textContent = ch.title;
+                document.getElementById('hudQuestDesc').textContent = ch.desc;
+            }
+        }
+    },
+
+    /* ---------------- RETINA (DPR) KESKİN PİKSEL RENDER MOTORU ---------------- */
+    render() {
+        const ctx = this.ctx;
+        const cw = this.canvas.width;
+        const ch = this.canvas.height;
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        const zoom = this.getZoom();
+
+        ctx.save();
+        ctx.scale(this.dpr, this.dpr);
+        ctx.imageSmoothingEnabled = false;
+
+        ctx.fillStyle = '#0c4a6e';
+        ctx.fillRect(0, 0, w, h);
+
+        ctx.translate(Math.round(w / 2), Math.round(h / 2));
+        ctx.scale(zoom, zoom);
+        ctx.translate(Math.round(-this.camera.x), Math.round(-this.camera.y));
+
+        const ts = World.TILE_SIZE;
+        const viewCols = Math.ceil((w / zoom) / ts) + 4;
+        const viewRows = Math.ceil((h / zoom) / ts) + 4;
+        const startC = Math.max(0, Math.floor(this.camera.x / ts - viewCols / 2));
+        const endC = Math.min(World.COLS - 1, startC + viewCols);
+        const startR = Math.max(0, Math.floor(this.camera.y / ts - viewRows / 2));
+        const endR = Math.min(World.ROWS - 1, startR + viewRows);
+
+        const waveTick = performance.now() * 0.003;
+
+        // 1. ZEMİN KAROLARI
+        for (let r = startR; r <= endR; r++) {
+            for (let c = startC; c <= endC; c++) {
+                const t = World.map[r][c];
+                const px = c * ts;
+                const py = r * ts;
+
+                if (t === 0) {
+                    ctx.fillStyle = '#0369a1';
+                    ctx.fillRect(px, py, ts, ts);
+                    if ((c + r + Math.floor(waveTick)) % 4 === 0) {
+                        ctx.fillStyle = '#0ea5e9';
+                        ctx.fillRect(px + 6, py + 12, 10, 2);
+                    }
+                } else if (t === 1) {
+                    ctx.fillStyle = '#0284c7';
+                    ctx.fillRect(px, py, ts, ts);
+                    if ((c * 2 + r + Math.floor(waveTick * 1.3)) % 3 === 0) {
+                        ctx.fillStyle = '#38bdf8';
+                        ctx.fillRect(px + 8, py + 14, 8, 2);
+                    }
+                } else if (t === 2) {
+                    ctx.fillStyle = '#fde047';
+                    ctx.fillRect(px, py, ts, ts);
+                    ctx.fillStyle = '#facc15';
+                    if ((c * 7 + r * 3) % 5 === 0) ctx.fillRect(px + 10, py + 18, 4, 4);
+                } else if (t === 3) {
+                    ctx.fillStyle = '#16a34a';
+                    ctx.fillRect(px, py, ts, ts);
+                    ctx.fillStyle = '#22c55e';
+                    if ((c + r * 2) % 3 === 0) ctx.fillRect(px + 8, py + 8, 4, 6);
+                } else if (t === 4) {
+                    ctx.fillStyle = '#15803d';
+                    ctx.fillRect(px, py, ts, ts);
+                    ctx.fillStyle = '#14532d';
+                    if ((c + r) % 2 === 0) ctx.fillRect(px + 12, py + 10, 6, 4);
+                } else if (t === 5) {
+                    ctx.fillStyle = '#64748b';
+                    ctx.fillRect(px, py, ts, ts);
+                    ctx.fillStyle = '#475569';
+                    ctx.fillRect(px + 4, py + 4, 12, 8);
+                } else if (t === 6) {
+                    ctx.fillStyle = '#0284c7';
+                    ctx.fillRect(px, py, ts, ts);
+                    ctx.fillStyle = '#92400e';
+                    ctx.fillRect(px + 2, py, ts - 4, ts);
+                    ctx.fillStyle = '#78350f';
+                    ctx.fillRect(px + 2, py + 14, ts - 4, 3);
+                } else if (t === 7) {
+                    ctx.fillStyle = '#365314';
+                    ctx.fillRect(px, py, ts, ts);
+                    ctx.fillStyle = '#4d7c0f';
+                    if ((c + r + Math.floor(waveTick)) % 4 === 0) ctx.fillRect(px + 6, py + 16, 12, 3);
+                } else if (t === 8) {
+                    ctx.fillStyle = '#3f6212';
+                    ctx.fillRect(px, py, ts, ts);
+                }
+            }
+        }
+
+        // Dokunulan Hedef Noktası Göstergesi
+        if (this.player.moveTarget) {
+            ctx.strokeStyle = 'rgba(251, 191, 36, 0.85)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(this.player.moveTarget.x, this.player.moveTarget.y, 6 + Math.sin(waveTick * 4) * 2, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+
+        // 2. SUDA YÜZEN BALIK GÖLGELERİ
+        World.fishShadows.forEach(fs => {
+            ctx.save();
+            ctx.translate(fs.x, fs.y);
+            ctx.rotate(Math.atan2(fs.vy, fs.vx));
+            ctx.fillStyle = 'rgba(2, 6, 23, 0.36)';
+            ctx.fillRect(-fs.size * 0.6, -fs.size * 0.25, fs.size * 1.2, fs.size * 0.5);
+            ctx.fillRect(-fs.size * 0.9, -fs.size * 0.4, fs.size * 0.3, fs.size * 0.8);
+            ctx.restore();
+        });
+
+        // 3. ETKİLEŞİMLİ NESNELER
+        World.interactables.forEach(obj => {
+            if ((obj.type === 'wood' || obj.type === 'bush') && obj.collected) return;
+
+            if (obj.type === 'campfire') {
+                ctx.fillStyle = '#64748b';
+                ctx.fillRect(obj.x - 14, obj.y - 10, 28, 20);
+                ctx.fillStyle = '#78350f';
+                ctx.fillRect(obj.x - 10, obj.y - 4, 20, 8);
+                if (obj.fuel > 0) {
+                    const flicker = Math.sin(performance.now() * 0.02 + obj.x) * 3;
+                    ctx.fillStyle = '#f97316';
+                    ctx.fillRect(obj.x - 8, obj.y - 14 - flicker, 16, 14 + flicker);
+                    ctx.fillStyle = '#facc15';
+                    ctx.fillRect(obj.x - 4, obj.y - 10 - flicker * 0.5, 8, 10);
+                }
+            } else if (obj.type === 'tent') {
+                // Piksel-Art Balıkçı Çadırı & Uyuma Yeri
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.28)';
+                ctx.fillRect(obj.x - 22, obj.y + 8, 44, 8);
+                // Çadır Gövdesi (Üçgen Piksel Katmanları)
+                ctx.fillStyle = '#0f766e';
+                ctx.fillRect(obj.x - 20, obj.y - 2, 40, 12);
+                ctx.fillStyle = '#14b8a6';
+                ctx.fillRect(obj.x - 16, obj.y - 10, 32, 8);
+                ctx.fillRect(obj.x - 11, obj.y - 17, 22, 7);
+                ctx.fillStyle = '#2dd4bf';
+                ctx.fillRect(obj.x - 6, obj.y - 22, 12, 5);
+                // Çadır Girişi ve Uyku Matı
+                ctx.fillStyle = '#0f172a';
+                ctx.fillRect(obj.x - 7, obj.y - 6, 14, 16);
+                ctx.fillStyle = '#f59e0b';
+                ctx.fillRect(obj.x - 5, obj.y + 3, 10, 6);
+                // Çadır Önü Feneri
+                ctx.fillStyle = '#78350f';
+                ctx.fillRect(obj.x + 18, obj.y - 10, 2, 20);
+                ctx.fillStyle = '#facc15';
+                ctx.fillRect(obj.x + 17, obj.y - 7, 4, 5);
+            } else if (obj.type === 'bush') {
+                // Toplanabilir Kuru Çalı
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.22)';
+                ctx.fillRect(obj.x - 9, obj.y + 4, 18, 4);
+                ctx.fillStyle = '#78350f';
+                ctx.fillRect(obj.x - 5, obj.y + 1, 10, 5);
+                ctx.fillStyle = '#3f6212';
+                ctx.fillRect(obj.x - 10, obj.y - 6, 20, 9);
+                ctx.fillStyle = '#65a30d';
+                ctx.fillRect(obj.x - 7, obj.y - 9, 14, 7);
+                ctx.fillStyle = '#a3e635';
+                ctx.fillRect(obj.x - 4, obj.y - 8, 5, 3);
+            } else if (obj.type === 'spring') {
+                ctx.fillStyle = '#94a3b8';
+                ctx.fillRect(obj.x - 16, obj.y - 14, 32, 26);
+                ctx.fillStyle = '#38bdf8';
+                ctx.fillRect(obj.x - 12, obj.y - 10, 24, 18);
+                ctx.fillStyle = '#e0f2fe';
+                ctx.fillRect(obj.x - 6, obj.y - 6 + Math.sin(waveTick * 2) * 2, 12, 4);
+            } else if (obj.type === 'wood') {
+                ctx.fillStyle = '#78350f';
+                ctx.fillRect(obj.x - 8, obj.y - 3, 16, 6);
+                ctx.fillStyle = '#a16207';
+                ctx.fillRect(obj.x - 6, obj.y - 6, 12, 4);
+            } else if (obj.type === 'boat') {
+                // Piksel Ahşap Tekne
+                ctx.fillStyle = '#78350f';
+                ctx.fillRect(obj.x - 18, obj.y - 10, 36, 20);
+                ctx.fillStyle = '#b45309';
+                ctx.fillRect(obj.x - 14, obj.y - 7, 28, 14);
+                ctx.fillStyle = '#f8fafc';
+                ctx.fillRect(obj.x - 2, obj.y - 24, 3, 18); // Direk
+                ctx.fillStyle = '#38bdf8';
+                ctx.fillRect(obj.x + 1, obj.y - 22, 10, 10); // Yelken
+            } else if (obj.type === 'merchant') {
+                ctx.fillStyle = '#b45309';
+                ctx.fillRect(obj.x - 20, obj.y - 18, 40, 14);
+                ctx.fillStyle = '#ef4444';
+                ctx.fillRect(obj.x - 20, obj.y - 24, 40, 6);
+                PixelRenderer.drawCharacter(ctx, obj.x, obj.y + 4, 1.35, {
+                    skinColor: '#e0ac69', hairColor: '#f8fafc', shirtColor: '#b45309',
+                    pantsColor: '#1e293b', hairStyle: 0, hat: 2, accessory: 3, outfitStyle: 2
+                }, { anim: 'idle', frame: waveTick * 10, dir: 'down' });
+            } else if (obj.type === 'keeper') {
+                PixelRenderer.drawCharacter(ctx, obj.x, obj.y, 1.4, {
+                    skinColor: '#f1c27d', hairColor: '#f8fafc', shirtColor: '#1d4ed8',
+                    pantsColor: '#0f172a', hairStyle: 1, hat: 3, accessory: 2, outfitStyle: 3
+                }, { anim: 'idle', frame: waveTick * 10, dir: 'down' });
+            }
+        });
+
+        // 4. DEKORASYONLAR
+        World.decorations.forEach(dec => {
+            if (dec.type === 'tree') {
+                ctx.fillStyle = 'rgba(0,0,0,0.25)';
+                ctx.fillRect(dec.x - 12, dec.y + 10, 24, 6);
+                ctx.fillStyle = '#78350f';
+                ctx.fillRect(dec.x - 4, dec.y - 4, 8, 16);
+                ctx.fillStyle = dec.variant === 0 ? '#15803d' : '#166534';
+                ctx.fillRect(dec.x - 14, dec.y - 22, 28, 20);
+                ctx.fillStyle = '#22c55e';
+                ctx.fillRect(dec.x - 10, dec.y - 28, 20, 12);
+            } else if (dec.type === 'lighthouse') {
+                ctx.fillStyle = '#f8fafc';
+                ctx.fillRect(dec.x - 16, dec.y - 68, 32, 76);
+                ctx.fillStyle = '#dc2626';
+                ctx.fillRect(dec.x - 16, dec.y - 52, 32, 14);
+                ctx.fillRect(dec.x - 16, dec.y - 24, 32, 14);
+                ctx.fillStyle = '#facc15';
+                ctx.fillRect(dec.x - 12, dec.y - 82, 24, 14);
+                ctx.fillStyle = '#991b1b';
+                ctx.fillRect(dec.x - 16, dec.y - 88, 32, 6);
+            } else if (dec.type === 'shell') {
+                ctx.fillStyle = '#fda4af';
+                ctx.fillRect(dec.x - 3, dec.y - 2, 6, 5);
+            }
+        });
+
+        // 5. OYUNCU KARAKTERİ VE KESKİN YARI ŞEFFAF İSİM ETİKETİ
+        if (this.isRunning && this.state.charConfig) {
+            const rod = SHOP_ITEMS.rods[this.state.rodLevel];
+            PixelRenderer.drawCharacter(ctx, this.player.x, this.player.y, 1.45, this.state.charConfig, {
+                anim: this.player.anim,
+                frame: this.player.frame,
+                dir: this.player.dir,
+                isFishing: this.fishing.state !== 'none',
+                rodColor: rod.color
+            });
+
+            // Karakterin üstünde keskin, yarı şeffaf isim etiketi
+            const charName = this.state.charConfig.name;
+            ctx.font = '600 10px "Rubik", sans-serif';
+            ctx.textAlign = 'center';
+            const textW = ctx.measureText(charName).width + 8;
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.44)';
+            ctx.fillRect(Math.round(this.player.x - textW / 2), Math.round(this.player.y - 38), textW, 13);
+            ctx.fillStyle = 'rgba(248, 250, 252, 0.85)';
+            ctx.fillText(charName, Math.round(this.player.x), Math.round(this.player.y - 28));
+
+            // Misina, Şamandıra ve Dünya-İçi Makara Sarım Göstergesi
+            if (this.fishing.state === 'casted' || this.fishing.state === 'biting' || this.fishing.state === 'reeling') {
+                const bobY = this.fishing.bobberY + Math.sin(waveTick * 3.5) * (this.fishing.state !== 'casted' ? 3.5 : 1.5);
+                const handOffsetX = this.player.dir === 'left' ? -24 : 24;
+
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(this.player.x + handOffsetX, this.player.y - 18);
+                ctx.lineTo(this.fishing.bobberX, bobY);
+                ctx.stroke();
+
+                // Su halkaları
+                ctx.strokeStyle = 'rgba(224, 242, 254, 0.65)';
+                ctx.beginPath();
+                ctx.arc(this.fishing.bobberX, this.fishing.bobberY, 6 + (waveTick * 7) % 9, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // Şamandıra
+                ctx.fillStyle = '#ef4444';
+                ctx.fillRect(this.fishing.bobberX - 3, bobY - 4, 6, 4);
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(this.fishing.bobberX - 3, bobY, 6, 3);
+
+                // Balık Vurdu Ünlemi (!)
+                if (this.fishing.state === 'biting') {
+                    ctx.fillStyle = '#facc15';
+                    ctx.strokeStyle = '#0f172a';
+                    ctx.lineWidth = 3;
+                    ctx.font = '700 18px "Pixelify Sans", sans-serif';
+                    ctx.strokeText('!', this.fishing.bobberX, bobY - 12);
+                    ctx.fillText('!', this.fishing.bobberX, bobY - 12);
+                }
+
+                // Dünya-İçi Sarım İlerleme Çubuğu (Popup olmadan doğrudan şamandıra üstünde)
+                if (this.fishing.state === 'reeling') {
+                    const barW = 42;
+                    const barH = 7;
+                    const bx = Math.round(this.fishing.bobberX - barW / 2);
+                    const by = Math.round(bobY - 18);
+                    ctx.fillStyle = '#0f172a';
+                    ctx.fillRect(bx - 1, by - 1, barW + 2, barH + 2);
+                    ctx.fillStyle = '#34d399';
+                    ctx.fillRect(bx, by, Math.round(barW * Math.min(1, this.fishing.reelProgress)), barH);
+                }
+            }
+
+            // Yakalanan Balığın Sudan Oyuncuya Zıplama Animasyonu
+            if (this.catchingFishAnim) {
+                const a = this.catchingFishAnim;
+                const fx = a.startX + (a.endX - a.startX) * a.t;
+                const fy = a.startY + (a.endY - a.startY) * a.t - Math.sin(a.t * Math.PI) * 42;
+                PixelRenderer.drawFishSprite(ctx, a.fish, fx, fy, 22);
+            }
+
+            // Su ve Parıltı Parçacıkları
+            this.particles.forEach(p => {
+                ctx.fillStyle = p.color;
+                ctx.fillRect(Math.round(p.x), Math.round(p.y), 3, 3);
+            });
+        }
+
+        ctx.restore();
+
+        // 6. HAVA DURUMU & GECE AYDINLATMASI
+        ctx.save();
+        ctx.scale(this.dpr, this.dpr);
+
+        if (this.state.weather === 'rainy') {
+            ctx.strokeStyle = 'rgba(186, 230, 253, 0.45)';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            const t = performance.now() * 0.6;
+            for (let i = 0; i < 65; i++) {
+                const rx = ((i * 97 + t * 0.3) % w);
+                const ry = ((i * 53 + t) % h);
+                ctx.moveTo(rx, ry);
+                ctx.lineTo(rx - 4, ry + 12);
+            }
+            ctx.stroke();
+        } else if (this.state.weather === 'foggy') {
+            ctx.fillStyle = 'rgba(203, 213, 225, 0.20)';
+            ctx.fillRect(0, 0, w, h);
+        }
+
+        let darkness = 0;
+        const tod = this.state.timeOfDay;
+        if (tod >= 20 || tod < 5) darkness = 0.54;
+        else if (tod >= 17.5 && tod < 20) darkness = ((tod - 17.5) / 2.5) * 0.54;
+        else if (tod >= 5 && tod < 7.5) darkness = ((7.5 - tod) / 2.5) * 0.54;
+
+        if (darkness > 0.02) {
+            ctx.fillStyle = `rgba(9, 13, 28, ${darkness})`;
+            ctx.fillRect(0, 0, w, h);
+
+            if (this.isRunning) {
+                const screenPx = (this.player.x - this.camera.x) * zoom + w / 2;
+                const screenPy = (this.player.y - this.camera.y) * zoom + h / 2;
+                const grad = ctx.createRadialGradient(screenPx, screenPy, 20, screenPx, screenPy, 155);
+                grad.addColorStop(0, 'rgba(253, 224, 71, 0.22)');
+                grad.addColorStop(1, 'rgba(253, 224, 71, 0)');
+                ctx.globalCompositeOperation = 'lighter';
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.arc(screenPx, screenPy, 155, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        ctx.restore();
+
+        this.renderMinimap();
+    },
+
+    renderMinimap() {
+        const mctx = this.minimapCtx;
+        const mw = this.minimapCanvas.width;
+        const mh = this.minimapCanvas.height;
+        const sx = mw / World.COLS;
+        const sy = mh / World.ROWS;
+
+        for (let r = 0; r < World.ROWS; r += 2) {
+            for (let c = 0; c < World.COLS; c += 2) {
+                const t = World.map[r][c];
+                if (t === 0 || t === 1) mctx.fillStyle = '#0284c7';
+                else if (t === 2) mctx.fillStyle = '#fde047';
+                else if (t === 3 || t === 4) mctx.fillStyle = '#16a34a';
+                else if (t === 5) mctx.fillStyle = '#64748b';
+                else if (t === 6) mctx.fillStyle = '#92400e';
+                else mctx.fillStyle = '#3f6212';
+                mctx.fillRect(c * sx, r * sy, sx * 2.1, sy * 2.1);
+            }
+        }
+
+        World.interactables.forEach(obj => {
+            if (obj.type === 'wood' || obj.type === 'bush') return;
+            const mx = (obj.x / World.TILE_SIZE) * sx;
+            const my = (obj.y / World.TILE_SIZE) * sy;
+            mctx.fillStyle = obj.type === 'campfire' ? '#f97316' :
+                             obj.type === 'tent' ? '#c084fc' :
+                             obj.type === 'spring' ? '#38bdf8' :
+                             obj.type === 'merchant' ? '#fbbf24' : '#f8fafc';
+            mctx.fillRect(mx - 2, my - 2, 4, 4);
+        });
+
+        if (this.isRunning) {
+            const px = (this.player.x / World.TILE_SIZE) * sx;
+            const py = (this.player.y / World.TILE_SIZE) * sy;
+            mctx.fillStyle = '#ef4444';
+            mctx.fillRect(px - 2.5, py - 2.5, 5, 5);
+        }
+    }
+};
+
+/* ----------------------------------------------------------------------------
+ * 7. KULLANICI ARAYÜZÜ, MODALLAR VE ENGELLEYİCİ OLMAYAN BALIK BİLDİRİMLERİ
+ * ---------------------------------------------------------------------------- */
+const UI = {
+    activeCampfireId: null,
+
+    isModalOpen() {
+        return !document.getElementById('modalBackdrop').classList.contains('hidden');
+    },
+
+    closeModal() {
+        document.getElementById('modalBackdrop').classList.add('hidden');
+    },
+
+    // Balık yakalandığında oyunu durdurmayan, 2.6 saniye görünüp kaybolan kompakt kart
+    showFishToast(fish, weight, gainedXp, isNew, isDouble) {
+        const container = document.getElementById('toastContainer');
+        const rInfo = RARITY_INFO[fish.rarity];
+        const el = document.createElement('div');
+        el.className = 'pixel-box px-3 py-1.5 flex items-center gap-2.5 toast-enter border-amber-400/90 shadow-xl';
+        el.innerHTML = `
+            <img src="${PixelRenderer.getFishIconURL(fish)}" class="pixel-art-canvas w-9 h-9 bg-slate-950 rounded border border-slate-700 shrink-0">
+            <div class="text-left leading-tight">
+                <div class="text-sm font-bold" style="color:${rInfo.color}">
+                    ${fish.name} <span class="text-xs text-slate-300 font-normal">(${weight} kg)</span>
+                    ${isNew ? '<span class="ml-1 text-[11px] bg-amber-500 text-slate-950 px-1.5 py-0.5 rounded font-bold">YENİ</span>' : ''}
+                    ${isDouble ? '<span class="ml-1 text-[11px] bg-emerald-500 text-slate-950 px-1.5 py-0.5 rounded font-bold">2x</span>' : ''}
+                </div>
+                <div class="text-xs text-slate-300 font-medium">${rInfo.label} • +${gainedXp} XP</div>
+            </div>
+        `;
+        container.appendChild(el);
+        if (container.children.length > 2) {
+            container.firstChild.remove();
+        }
+        setTimeout(() => {
+            el.style.opacity = '0';
+            el.style.transition = 'opacity 0.25s';
+            setTimeout(() => el.remove(), 260);
+        }, 2600);
+    },
+
+    toast(message, color = 'emerald') {
+        const container = document.getElementById('toastContainer');
+        const el = document.createElement('div');
+        const borderMap = {
+            emerald: 'border-emerald-400 text-emerald-100',
+            amber: 'border-amber-400 text-amber-100',
+            red: 'border-rose-400 text-rose-100',
+            slate: 'border-slate-400 text-slate-100'
+        };
+        el.className = `pixel-box px-3.5 py-2 text-xs sm:text-sm font-medium toast-enter shadow-xl ${borderMap[color] || borderMap.emerald}`;
+        el.textContent = message;
+        container.appendChild(el);
+        if (container.children.length > 3) {
+            container.firstChild.remove();
+        }
+        setTimeout(() => {
+            el.style.opacity = '0';
+            el.style.transition = 'opacity 0.25s';
+            setTimeout(() => el.remove(), 260);
+        }, 2800);
+    },
+
+    openModal(type, extraData = null) {
+        const backdrop = document.getElementById('modalBackdrop');
+        const title = document.getElementById('modalTitle');
+        const content = document.getElementById('modalContent');
+        backdrop.classList.remove('hidden');
+
+        if (type === 'bag') {
+            title.textContent = '🎒 BALIKÇI ÇANTASI & ENVANTER';
+            this.renderBagModal(content);
+        } else if (type === 'shop') {
+            title.textContent = '🏪 TÜCCAR HASAN - DÜKKAN & BALIK PAZARI';
+            this.renderShopModal(content);
+        } else if (type === 'dex') {
+            const caughtSpecies = Object.keys(Game.state.pokedex).length;
+            title.textContent = `📖 BALIK ANSİKLOPEDİSİ (${caughtSpecies}/${FISH_DATABASE.length})`;
+            this.renderDexModal(content);
+        } else if (type === 'skills') {
+            title.textContent = `⚡ YETENEK AĞACI (Puan: ${Game.state.skillPoints})`;
+            this.renderSkillsModal(content);
+        } else if (type === 'campfire') {
+            if (extraData && extraData.id) {
+                this.activeCampfireId = extraData.id;
+            }
+            title.textContent = '🔥 KAMP ATEŞİ & BALIK PİŞİRME OCAĞI';
+            this.renderCampfireModal(content);
+        } else if (type === 'tent') {
+            title.textContent = '⛺ BALIKÇI ÇADIRI & UYUMA YERİ';
+            this.renderTentModal(content);
+        } else if (type === 'story') {
+            title.textContent = '📜 UNUTULMUŞ ADA - HİKAYE & KURTARMA TEKNESİ';
+            this.renderStoryModal(content);
+        } else if (type === 'audio') {
+            title.textContent = '🎵 MÜZİK, SES & OYUN AYARLARI';
+            this.renderAudioModal(content);
+        }
+    },
+
+    renderBagModal(el) {
+        const inv = Game.state.inventory;
+        const bushCount = inv.bush || 0;
+        let html = `
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 pixel-subbox p-3 text-sm">
+                <div>🪱 Solucan: <strong class="text-amber-300">${inv.bait}</strong></div>
+                <div>✨ Parlak: <strong class="text-purple-300">${inv.proBait}</strong></div>
+                <div>🌿 Kuru Çalı: <strong class="text-lime-300">${bushCount}</strong></div>
+                <div>🪵 Odun: <strong class="text-orange-300">${inv.wood}</strong></div>
+                <div>🍶 Matara: <strong class="text-sky-300">${inv.waterCharges}/3</strong></div>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between gap-2 pixel-subbox p-2.5 text-sm">
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="text-slate-300 font-medium">Aktif Olta Yemi:</span>
+                    <button onclick="Game.state.activeBait='none'; UI.openModal('bag')" class="pixel-btn px-3 py-1 ${Game.state.activeBait==='none'?'pixel-btn-emerald':''}">Yemsiz</button>
+                    <button onclick="Game.state.activeBait='bait'; UI.openModal('bag')" ${inv.bait<=0?'disabled':''} class="pixel-btn px-3 py-1 ${Game.state.activeBait==='bait'?'pixel-btn-emerald':''}">🪱 Solucan (${inv.bait})</button>
+                    <button onclick="Game.state.activeBait='proBait'; UI.openModal('bag')" ${inv.proBait<=0?'disabled':''} class="pixel-btn px-3 py-1 ${Game.state.activeBait==='proBait'?'pixel-btn-emerald':''}">✨ Parlak (${inv.proBait})</button>
+                </div>
+                <button onclick="Game.buildCampfireHere()" ${(bushCount<=0 && inv.wood<=0)?'disabled':''} class="pixel-btn pixel-btn-gold px-3 py-1.5 text-xs">
+                    🔥 Bulunduğun Yere Ateş Yak (1 Çalı/Odun)
+                </button>
+            </div>
+        `;
+
+        if (Game.state.mode === 'story') {
+            html += `
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="UI.drinkWaterFromBag()" ${inv.waterCharges<=0?'disabled':''} class="pixel-btn pixel-btn-blue px-3.5 py-2 text-sm">
+                        🍶 Mataradan Su İç (+45 Susuzluk)
+                    </button>
+                    <button onclick="UI.eatRationFromBag()" ${inv.ration<=0?'disabled':''} class="pixel-btn pixel-btn-gold px-3.5 py-2 text-sm">
+                        🥫 Konserve Ye (${inv.ration} adet | +45 Açlık, +20 Isı)
+                    </button>
+                </div>
+            `;
+        }
+
+        html += `<h4 class="font-pixel-title text-base font-bold text-teal-400 pt-1">🐟 Tutulan Balıklar (${inv.fish.length})</h4>`;
+        if (inv.fish.length === 0) {
+            html += `<p class="text-slate-400 text-sm">Çantanda henüz balık yok. Suya dokunarak veya SPACE tuşuyla olta at!</p>`;
+        } else {
+            html += `<div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">`;
+            inv.fish.forEach((item, idx) => {
+                const f = FISH_DATABASE.find(x => x.id === item.fishId);
+                const r = RARITY_INFO[f.rarity];
+                const valBonus = 1 + (Game.state.skills.valueBonus || 0) * 0.12;
+                const sellVal = Math.round(f.price * (1 + item.weight * 0.15) * (item.cooked ? 1.4 : 1) * valBonus);
+                const canEat = Game.state.mode === 'story' || item.cooked;
+                html += `
+                    <div class="flex items-center justify-between pixel-subbox p-2.5">
+                        <div class="flex items-center gap-2.5">
+                            <img src="${PixelRenderer.getFishIconURL(f)}" class="pixel-art-canvas w-10 h-10 bg-slate-950 rounded border border-slate-700">
+                            <div>
+                                <div class="font-semibold text-sm" style="color:${r.color}">${item.cooked ? '🍖 Pişmiş ' : ''}${f.name}</div>
+                                <div class="text-xs text-slate-400">${item.weight} kg • Değer: ${sellVal} Altın</div>
+                            </div>
+                        </div>
+                        ${canEat ? `
+                            <button onclick="UI.eatFish(${idx})" class="pixel-btn pixel-btn-emerald px-2.5 py-1 text-xs">
+                                ${Game.state.mode === 'story' ? `Ye (+${item.cooked ? 48 : 15})` : '🍖 Ye'}
+                            </button>
+                        ` : ''}
+                    </div>
+                `;
+            });
+            html += `</div>`;
+        }
+        el.innerHTML = html;
+    },
+
+    drinkWaterFromBag() {
+        if (Game.state.inventory.waterCharges > 0) {
+            Game.state.inventory.waterCharges--;
+            Game.state.thirst = Math.min(100, Game.state.thirst + 45);
+            AudioEngine.playSfx('eat');
+            UI.toast('💧 Mataradan su içtin (+45 Susuzluk)', 'emerald');
+            Game.updateHUD();
+            this.openModal('bag');
+        }
+    },
+
+    eatRationFromBag() {
+        if (Game.state.inventory.ration > 0) {
+            Game.state.inventory.ration--;
+            Game.state.hunger = Math.min(100, Game.state.hunger + 45);
+            Game.state.warmth = Math.min(100, Game.state.warmth + 20);
+            AudioEngine.playSfx('eat');
+            UI.toast('🥫 Konserve yedin (+45 Açlık, +20 Vücut Isısı)', 'emerald');
+            Game.updateHUD();
+            this.openModal('bag');
+        }
+    },
+
+    eatFish(idx) {
+        const item = Game.state.inventory.fish[idx];
+        if (!item) return;
+        Game.state.inventory.fish.splice(idx, 1);
+        const gain = item.cooked ? 48 : 15;
+        Game.state.hunger = Math.min(100, Game.state.hunger + gain);
+        if (item.cooked) {
+            Game.state.warmth = Math.min(100, Game.state.warmth + 15);
+            Game.state.storyStats.cookedEatenCount++;
+            Game.checkStoryProgress();
+        }
+        AudioEngine.playSfx('eat');
+        if (Game.state.mode === 'story') {
+            UI.toast(item.cooked ? '🍖 Sıcak pişmiş balık yedin! (+48 Açlık, +15 Isı)' : '🐟 Çiğ balık yedin (+15 Açlık).', 'emerald');
+        } else {
+            UI.toast('🍖 Ateşte kızarmış taze balığın tadı harikaydı!', 'emerald');
+        }
+        Game.updateHUD();
+        Game.saveGame();
+        this.openModal('bag');
+    },
+
+    renderShopModal(el) {
+        const fishCount = Game.state.inventory.fish.length;
+        const valBonus = 1 + (Game.state.skills.valueBonus || 0) * 0.12;
+        let totalFishValue = 0;
+        Game.state.inventory.fish.forEach(item => {
+            const f = FISH_DATABASE.find(x => x.id === item.fishId);
+            totalFishValue += Math.round(f.price * (1 + item.weight * 0.15) * (item.cooked ? 1.4 : 1) * valBonus);
+        });
+
+        let html = `
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 bg-amber-950/40 border-2 border-amber-500/60 p-3.5 rounded-md">
+                <div>
+                    <div class="text-amber-300 font-bold text-base">💰 Balık Satış Tezgahı</div>
+                    <div class="text-slate-300 text-sm">Çantandaki ${fishCount} balığın toplam değeri: <strong class="text-amber-400">${totalFishValue} Altın</strong></div>
+                </div>
+                <button onclick="UI.sellAllFish()" ${fishCount===0?'disabled':''} class="pixel-btn pixel-btn-gold px-4 py-2 text-sm">
+                    💰 TÜM BALIKLARI SAT (+${totalFishValue})
+                </button>
+            </div>
+
+            <h4 class="font-pixel-title text-base font-bold text-teal-400">🎣 Olta Kamışı Geliştirmeleri (5 Kademe)</h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+        `;
+
+        SHOP_ITEMS.rods.forEach(rod => {
+            const owned = Game.state.rodLevel >= rod.level;
+            const isNext = Game.state.rodLevel + 1 === rod.level;
+            html += `
+                <div class="pixel-subbox ${owned ? 'border-emerald-500' : ''} p-3 flex flex-col justify-between">
+                    <div>
+                        <div class="font-bold text-amber-300 text-sm">${rod.name}</div>
+                        <div class="text-xs text-slate-300 mt-1">${rod.desc}</div>
+                    </div>
+                    <div class="mt-2.5 pt-2 border-t border-slate-700 flex justify-between items-center text-sm">
+                        <span class="text-amber-400 font-semibold">${rod.price === 0 ? 'Başlangıç' : rod.price + ' Altın'}</span>
+                        ${owned ? '<span class="text-emerald-400 font-semibold">✔ SAHİPSİN</span>' :
+                          `<button onclick="UI.buyRod(${rod.level}, ${rod.price})" ${(!isNext || Game.state.gold < rod.price)?'disabled':''} class="pixel-btn pixel-btn-emerald px-3 py-1 text-xs">
+                            ${isNext ? 'SATIN AL' : 'Öncekini Al'}
+                           </button>`}
+                    </div>
+                </div>
+            `;
+        });
+
+        html += `</div><h4 class="font-pixel-title text-base font-bold text-teal-400 pt-1">🎒 Yem ve Malzemeler</h4><div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">`;
+
+        SHOP_ITEMS.consumables.forEach(item => {
+            html += `
+                <div class="pixel-subbox p-3 flex items-center justify-between gap-2">
+                    <div>
+                        <div class="font-semibold text-white text-sm">${item.name}</div>
+                        <div class="text-xs text-slate-400 mt-0.5">${item.desc}</div>
+                    </div>
+                    <button onclick="UI.buyConsumable('${item.id}')" ${Game.state.gold < item.price ? 'disabled' : ''} class="pixel-btn pixel-btn-gold px-3 py-1.5 text-xs whitespace-nowrap">
+                        ${item.price} Altın
+                    </button>
+                </div>
+            `;
+        });
+        html += `</div>`;
+        el.innerHTML = html;
+    },
+
+    sellAllFish() {
+        const valBonus = 1 + (Game.state.skills.valueBonus || 0) * 0.12;
+        let total = 0;
+        Game.state.inventory.fish.forEach(item => {
+            const f = FISH_DATABASE.find(x => x.id === item.fishId);
+            total += Math.round(f.price * (1 + item.weight * 0.15) * (item.cooked ? 1.4 : 1) * valBonus);
+        });
+        if (total <= 0) return;
+        Game.state.inventory.fish = [];
+        Game.state.gold += total;
+        AudioEngine.playSfx('coin');
+        UI.toast(`💰 Tüm balıklar satıldı! +${total} Altın kazandın.`, 'amber');
+        Game.updateHUD();
+        Game.saveGame();
+        this.openModal('shop');
+    },
+
+    buyRod(level, price) {
+        if (Game.state.gold < price) return;
+        Game.state.gold -= price;
+        Game.state.rodLevel = level;
+        AudioEngine.playSfx('catch');
+        UI.toast('🎣 Yeni olta kamışın kuşanıldı!', 'emerald');
+        Game.updateHUD();
+        Game.saveGame();
+        this.openModal('shop');
+    },
+
+    buyConsumable(id) {
+        const item = SHOP_ITEMS.consumables.find(x => x.id === id);
+        if (!item || Game.state.gold < item.price) return;
+        Game.state.gold -= item.price;
+        Game.state.inventory[item.type] += item.amount;
+        AudioEngine.playSfx('coin');
+        UI.toast(`✅ ${item.name} satın alındı!`, 'emerald');
+        Game.updateHUD();
+        Game.saveGame();
+        this.openModal('shop');
+    },
+
+    renderDexModal(el) {
+        const biomeLabels = {
+            beach: '🏖️ Kumsal',
+            lake: '🏞️ Tatlı Göl',
+            cliffs: '🪸 Mercan Resifi',
+            swamp: '🌿 Gizemli Lagün',
+            lighthouse: '🗼 Deniz Feneri'
+        };
+        let html = `<div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">`;
+        FISH_DATABASE.forEach(f => {
+            const record = Game.state.pokedex[f.id];
+            const r = RARITY_INFO[f.rarity];
+            if (record) {
+                html += `
+                    <div class="pixel-subbox p-2.5 flex items-center gap-3">
+                        <img src="${PixelRenderer.getFishIconURL(f)}" class="pixel-art-canvas w-12 h-12 bg-slate-950 rounded border border-slate-700">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between gap-1">
+                                <span class="font-semibold text-sm truncate" style="color:${r.color}">${f.name}</span>
+                                <span class="text-xs px-1.5 py-0.5 rounded bg-slate-900 font-medium" style="color:${r.color}">${r.label}</span>
+                            </div>
+                            <div class="text-xs text-slate-300 mt-0.5">${biomeLabels[f.biome]} • Rekor: <strong class="text-amber-300">${record.maxWeight} kg</strong> (${record.count}x)</div>
+                            <div class="text-xs text-slate-400 truncate mt-0.5">${f.desc}</div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div class="bg-slate-950/70 border border-slate-800 p-2.5 rounded flex items-center gap-3 opacity-60">
+                        <div class="w-12 h-12 bg-slate-900 rounded flex items-center justify-center text-xl text-slate-600 font-bold">?</div>
+                        <div>
+                            <div class="font-semibold text-sm text-slate-400">??? (Keşfedilmedi)</div>
+                            <div class="text-xs text-slate-500">Bölge: ${biomeLabels[f.biome]} • Nadirlik: ${r.label}</div>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+        html += `</div>`;
+        el.innerHTML = html;
+    },
+
+    renderSkillsModal(el) {
+        const skillsList = [
+            { key: 'luck', name: '🍀 Balıkçı Şansı', desc: 'Nadir, Destansı ve Efsanevi balık yakalama şansını artırır.' },
+            { key: 'speed', name: '⚡ Hızlı Makara', desc: 'Balığı kıyıya çekme hızını %15 artırır.' },
+            { key: 'doubleCatch', name: '🐟🐟 Çift Balık Şansı', desc: 'Tek oltada 2 balık birden yakalama şansı verir.' },
+            { key: 'valueBonus', name: '💰 Usta Tüccar', desc: 'Tutulan balıkların satış fiyatını %12 artırır.' }
+        ];
+
+        let html = `<p class="text-slate-300 text-sm">Seviye atladıkça kazandığın yetenek puanlarıyla karakterini güçlendir! Mevcut Puan: <strong class="text-amber-400">${Game.state.skillPoints}</strong></p><div class="space-y-2.5">`;
+        skillsList.forEach(sk => {
+            const lvl = Game.state.skills[sk.key] || 0;
+            html += `
+                <div class="pixel-subbox p-3 flex items-center justify-between gap-3">
+                    <div>
+                        <div class="font-semibold text-teal-300 text-sm">${sk.name} (Seviye ${lvl}/5)</div>
+                        <div class="text-xs text-slate-300 mt-0.5">${sk.desc}</div>
+                    </div>
+                    <button onclick="UI.upgradeSkill('${sk.key}')" ${(Game.state.skillPoints<=0 || lvl>=5)?'disabled':''} class="pixel-btn pixel-btn-emerald px-3 py-1.5 text-xs">
+                        + GELİŞTİR
+                    </button>
+                </div>
+            `;
+        });
+        html += `</div>`;
+        el.innerHTML = html;
+    },
+
+    upgradeSkill(key) {
+        if (Game.state.skillPoints <= 0 || Game.state.skills[key] >= 5) return;
+        Game.state.skillPoints--;
+        Game.state.skills[key]++;
+        AudioEngine.playSfx('catch');
+        Game.updateHUD();
+        Game.saveGame();
+        this.openModal('skills');
+    },
+
+    renderCampfireModal(el) {
+        const fireObj = World.interactables.find(o => o.id === this.activeCampfireId) ||
+                        World.interactables.find(o => o.type === 'campfire');
+        const fuelSec = fireObj ? Math.round(fireObj.fuel) : Math.round(Game.state.campfireFuel);
+        const bushCount = Game.state.inventory.bush || 0;
+        const woodCount = Game.state.inventory.wood || 0;
+        const rawFish = Game.state.inventory.fish.map((item, idx) => ({ item, idx })).filter(x => !x.item.cooked);
+
+        let html = `
+            <div class="bg-orange-950/40 border-2 border-orange-500/60 p-3.5 rounded-md flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div>
+                    <div class="text-orange-300 font-bold text-base">🔥 Ateş Durumu: ${fuelSec > 0 ? `YANIYOR (${fuelSec} sn kaldı)` : 'SÖNMÜŞ'}</div>
+                    <div class="text-slate-300 text-xs mt-0.5">Çalı veya odun ekleyerek ateşi harlayabilir ve tuttuğun balıkları pişirebilirsin.</div>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="UI.stokeCampfire('bush')" ${bushCount<=0?'disabled':''} class="pixel-btn pixel-btn-emerald px-3 py-2 text-xs whitespace-nowrap">
+                        🌿 Çalı At (+60 sn) [${bushCount}]
+                    </button>
+                    <button onclick="UI.stokeCampfire('wood')" ${woodCount<=0?'disabled':''} class="pixel-btn pixel-btn-gold px-3 py-2 text-xs whitespace-nowrap">
+                        🪵 Odun At (+90 sn) [${woodCount}]
+                    </button>
+                </div>
+            </div>
+        `;
+
+        html += `
+            <div class="flex items-center justify-between pt-1">
+                <h4 class="font-pixel-title text-base font-bold text-amber-400">🍖 Balık Pişirme Izgarası</h4>
+                ${(fuelSec > 0 && rawFish.length > 1) ? `
+                    <button onclick="UI.cookAllFish()" class="pixel-btn pixel-btn-gold px-3 py-1 text-xs">
+                        🔥 Tümünü Pişir (${rawFish.length})
+                    </button>
+                ` : ''}
+            </div>
+        `;
+        if (fuelSec <= 0) {
+            html += `<p class="text-rose-300 text-sm">Balık pişirmek için önce ateşe kuru çalı veya odun atıp yakmalısın!</p>`;
+        } else if (rawFish.length === 0) {
+            html += `<p class="text-slate-400 text-sm">Çantanda pişirilecek çiğ balık yok.</p>`;
+        } else {
+            html += `<div class="grid grid-cols-1 sm:grid-cols-2 gap-2">`;
+            rawFish.forEach(({ item, idx }) => {
+                const f = FISH_DATABASE.find(x => x.id === item.fishId);
+                html += `
+                    <div class="pixel-subbox p-2.5 flex items-center justify-between text-sm">
+                        <span>🐟 ${f.name} (${item.weight} kg)</span>
+                        <button onclick="UI.cookFish(${idx})" class="pixel-btn pixel-btn-emerald px-3 py-1 text-xs">🔥 Pişir</button>
+                    </div>
+                `;
+            });
+            html += `</div>`;
+        }
+        el.innerHTML = html;
+    },
+
+    stokeCampfire(fuelType = 'wood') {
+        const fireObj = World.interactables.find(o => o.id === this.activeCampfireId) ||
+                        World.interactables.find(o => o.type === 'campfire');
+        if (!fireObj) return;
+
+        if (fuelType === 'bush') {
+            if ((Game.state.inventory.bush || 0) <= 0) return;
+            Game.state.inventory.bush--;
+            fireObj.fuel += 60;
+        } else {
+            if (Game.state.inventory.wood <= 0) return;
+            Game.state.inventory.wood--;
+            fireObj.fuel += 90;
+        }
+
+        Game.state.campfireFuel = Math.max(Game.state.campfireFuel, fireObj.fuel);
+        Game.state.storyStats.campfireLitCount++;
+        AudioEngine.playSfx('fire');
+        UI.toast('🔥 Kamp ateşi harlandı! Artık balık pişirebilirsin.', 'amber');
+        Game.checkStoryProgress();
+        Game.updateHUD();
+        Game.saveGame();
+        this.openModal('campfire');
+    },
+
+    cookFish(idx) {
+        const fireObj = World.interactables.find(o => o.id === this.activeCampfireId) ||
+                        World.interactables.find(o => o.type === 'campfire');
+        const fuelSec = fireObj ? fireObj.fuel : Game.state.campfireFuel;
+        if (fuelSec <= 0 || !Game.state.inventory.fish[idx]) return;
+        Game.state.inventory.fish[idx].cooked = true;
+        AudioEngine.playSfx('fire');
+        UI.toast('🍖 Balık nar gibi kızardı! Çantandan yiyebilir veya daha yüksek fiyata satabilirsin.', 'emerald');
+        Game.saveGame();
+        this.openModal('campfire');
+    },
+
+    cookAllFish() {
+        const fireObj = World.interactables.find(o => o.id === this.activeCampfireId) ||
+                        World.interactables.find(o => o.type === 'campfire');
+        const fuelSec = fireObj ? fireObj.fuel : Game.state.campfireFuel;
+        if (fuelSec <= 0) return;
+        let cookedCount = 0;
+        Game.state.inventory.fish.forEach(item => {
+            if (!item.cooked) {
+                item.cooked = true;
+                cookedCount++;
+            }
+        });
+        if (cookedCount > 0) {
+            AudioEngine.playSfx('fire');
+            UI.toast(`🍖 ${cookedCount} balık ateşte nar gibi kızardı!`, 'emerald');
+            Game.saveGame();
+            this.openModal('campfire');
+        }
+    },
+
+    renderTentModal(el) {
+        const hh = Math.floor(Game.state.timeOfDay).toString().padStart(2, '0');
+        const mm = Math.floor((Game.state.timeOfDay % 1) * 60).toString().padStart(2, '0');
+        const isNight = Game.state.timeOfDay >= 19.0 || Game.state.timeOfDay < 6.0;
+
+        el.innerHTML = `
+            <div class="pixel-subbox p-4 space-y-3">
+                <div class="flex items-center justify-between">
+                    <span class="font-bold text-teal-300 text-base">⛺ Rahat Balıkçı Çadırı</span>
+                    <span class="text-sm bg-slate-900 border border-slate-700 px-2.5 py-1 rounded text-amber-300 font-semibold">
+                        🕒 Saat: ${hh}:${mm} (${isNight ? 'Gece' : 'Gündüz'})
+                    </span>
+                </div>
+                <p class="text-slate-300 text-sm leading-relaxed">
+                    ${isNight
+                        ? '🌙 Gece çöktü ve yıldızlar adayı aydınlatıyor. Çadırına girip sabaha (07:30) kadar huzurla uyuyabilirsin.'
+                        : '☀️ Şu an ada gündüz vaktinde. Gece olduğunda (19:00 - 06:00 arası) buraya gelip sabaha kadar uyuyabilirsin.'}
+                </p>
+                <div class="pt-1">
+                    <button onclick="Game.sleepUntilMorning()" ${!isNight ? 'disabled' : ''} class="w-full pixel-btn pixel-btn-blue py-3 text-base">
+                        ${isNight ? '🌙 Sabaha Kadar Uyu (07:30\'a Uyan)' : '⏳ Uyuma Zamanı Gece Başlar (19:00)'}
+                    </button>
+                </div>
+            </div>
+        `;
+    },
+
+    renderStoryModal(el) {
+        const curIdx = Game.state.storyChapter;
+        let html = `
+            <div class="bg-sky-950/50 border border-sky-500/50 p-3.5 rounded-md">
+                <div class="font-bold text-sky-300 text-base">👴 Fener Bekçisi Kaptan Rıza:</div>
+                <p class="text-slate-200 text-sm mt-1">
+                    "Hoş geldin evlat! Bu adadan sağ salim ayrılmak istiyorsan önce ateşini yak, karnını doyur ve tatlı su pınarını bul. Ardından efsanevi deniz parçasını yakalayıp Güney İskelesi'ndeki kurtarma teknesini onarabiliriz!"
+                </p>
+            </div>
+        `;
+
+        if (curIdx === 5 && Game.state.storyStats.caughtEpicOrStorm >= 1 && Game.state.storyStats.rescuedCompleted === 0) {
+            html += `
+                <button onclick="Game.state.storyStats.rescuedCompleted=1; Game.checkStoryProgress(); UI.openModal('story')" class="w-full pixel-btn pixel-btn-gold py-3 text-base">
+                    ⛵ KURTARMA TEKNESİNİ ONAR VE KURTULUŞ SİNYALİ GÖNDER!
+                </button>
+            `;
+        }
+
+        html += `<div class="space-y-2">`;
+        STORY_CHAPTERS.forEach((ch, idx) => {
+            const done = idx < curIdx || (idx === 5 && Game.state.storyStats.rescuedCompleted >= 1);
+            const active = idx === curIdx && !done;
+            html += `
+                <div class="p-3 rounded-md border ${done ? 'bg-emerald-950/40 border-emerald-500' : active ? 'bg-amber-950/40 border-amber-400' : 'bg-slate-900/60 border-slate-800 opacity-60'}">
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="font-bold ${done ? 'text-emerald-300' : active ? 'text-amber-300' : 'text-slate-400'}">
+                            ${done ? '✅' : active ? '▶' : '🔒'} ${ch.title}
+                        </span>
+                        <span class="text-xs text-teal-300 font-medium">${ch.rewardText}</span>
+                    </div>
+                    <p class="text-xs text-slate-300 mt-1">${ch.desc}</p>
+                </div>
+            `;
+        });
+        html += `</div>`;
+        el.innerHTML = html;
+    },
+
+    renderAudioModal(el) {
+        let html = `
+            <div class="space-y-3 text-sm">
+                <div class="flex items-center justify-between pixel-subbox p-3">
+                    <span class="font-medium">🎵 Arka Plan Rahatlatıcı Ada Müziği</span>
+                    <button onclick="AudioEngine.toggleMusic(); UI.openModal('audio')" class="pixel-btn ${AudioEngine.isMusicOn ? 'pixel-btn-emerald' : 'pixel-btn-red'} px-4 py-1.5 text-xs">
+                        ${AudioEngine.isMusicOn ? '🔊 AÇIK' : '🔇 KAPALI'}
+                    </button>
+                </div>
+
+                <div class="pixel-subbox p-3 space-y-2">
+                    <div class="text-slate-300 font-medium">Müzik Parçası Seçin:</div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        ${AudioEngine.tracks.map((tr, i) => `
+                            <button onclick="AudioEngine.selectTrack(${i}); UI.openModal('audio')" class="pixel-btn p-2 text-xs ${AudioEngine.currentTrack===i ? 'pixel-btn-gold' : ''}">
+                                🎶 ${tr.name}
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between pixel-subbox p-3">
+                    <span class="font-medium">🔔 Piksel Ses Efektleri</span>
+                    <button onclick="AudioEngine.isSfxOn=!AudioEngine.isSfxOn; UI.openModal('audio')" class="pixel-btn ${AudioEngine.isSfxOn ? 'pixel-btn-emerald' : 'pixel-btn-red'} px-4 py-1.5 text-xs">
+                        ${AudioEngine.isSfxOn ? '🔊 AÇIK' : '🔇 KAPALI'}
+                    </button>
+                </div>
+
+                <div class="flex flex-wrap justify-between gap-2 pt-3 border-t border-slate-700">
+                    <button onclick="Game.saveGame(); UI.toast('💾 Oyun manuel olarak kaydedildi!', 'emerald')" class="pixel-btn pixel-btn-blue px-4 py-2 text-xs">
+                        💾 Oyunu Kaydet
+                    </button>
+                    <button onclick="location.reload()" class="pixel-btn pixel-btn-red px-4 py-2 text-xs">
+                        🏠 Ana Menüye Dön (Karakter / Mod Değiştir)
+                    </button>
+                </div>
+            </div>
+        `;
+        el.innerHTML = html;
+    }
+};
+
+window.onload = function () {
+    Game.init();
+};
+</script>
+</body>
+</html>
